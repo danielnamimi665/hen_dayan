@@ -110,7 +110,7 @@ export default function ToolsMaintenancePage() {
         const parsed = JSON.parse(saved)
         if (parsed && Array.isArray(parsed.tables) && parsed.tables.length === 5) {
           // Apply global titles to loaded data by position
-          const updatedTables = parsed.tables.map((table: any, index: number) => ({
+          const updatedTables = parsed.tables.map((table: ToolTable, index: number) => ({
             ...table,
             title: globalTitles[`table-${index + 1}`] || table.title
           }))

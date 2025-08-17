@@ -18,10 +18,8 @@ export type InvoiceWithUpload = InvoiceData & {
   blob?: Blob;
 };
 
-// Type for Firebase operations
-export interface FirebaseInvoice extends InvoiceData {
-  // FirebaseInvoice already has all the fields we need
-}
+// Type for Firebase operations - same as InvoiceData
+export type FirebaseInvoice = InvoiceData;
 
 // Type for local storage operations
 export interface LocalInvoiceData {

@@ -164,6 +164,10 @@ export class InvoicesDB {
       const invoices = existing ? JSON.parse(existing) : [];
       
       // Convert blob to base64
+      if (!invoice.blob) {
+        console.error('Cannot save invoice without blob:', invoice.name);
+        return false;
+      }
       const base64Data = await this.blobToBase64(invoice.blob);
       
       const invoiceToSave = {
@@ -266,6 +270,10 @@ export class InvoicesDB {
         return false;
       }
 
+      if (!invoice.blob) {
+        console.error('Cannot save invoice without blob:', invoice.name);
+        return false;
+      }
       console.log('Saving invoice to IndexedDB:', invoice.name, 'Size:', invoice.blob.size, 'Type:', invoice.blob.type);
 
       if (this.isIndexedDBSupported()) {
@@ -337,7 +345,7 @@ export class InvoicesDB {
           name: db.name,
           version: db.version,
           objectStores: Array.from(db.objectStoreNames),
-          readyState: db.readyState
+          readyState: 'open'
         };
       } else {
         const fallbackData = localStorage.getItem(this.fallbackKeyPrefix);
@@ -350,7 +358,7 @@ export class InvoicesDB {
       }
     } catch (error) {
       console.error('Error getting database info:', error);
-      return { type: 'error', error: error.message };
+      return { type: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
