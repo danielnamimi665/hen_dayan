@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    direction: rtl;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  }
+  
+  body {
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+@layer components {
+  .rtl {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  .ltr {
+    direction: ltr;
+    text-align: left;
+  }
+}
