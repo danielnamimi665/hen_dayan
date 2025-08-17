@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { InvoiceData } from '../types/invoice'
 import AlbumCard from './AlbumCard'
@@ -20,8 +20,22 @@ export default function AlbumGrid({
 }: AlbumGridProps) {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null)
   const [showMobileGallery, setShowMobileGallery] = useState(false)
+  const [forceUpdate, setForceUpdate] = useState(0)
   
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  
+  // Force re-render when invoices change
+  React.useEffect(() => {
+    console.log('AlbumGrid: invoices changed, count:', invoices.length)
+    setForceUpdate(prev => prev + 1)
+    
+    // Force immediate re-render for mobile
+    if (isMobile) {
+      setTimeout(() => {
+        setForceUpdate(prev => prev + 1)
+      }, 50)
+    }
+  }, [invoices, isMobile])
 
   const handleDelete = (invoice: InvoiceData) => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק חשבונית זו?')) {
@@ -70,7 +84,7 @@ export default function AlbumGrid({
     <div className="space-y-6">
       {/* Mobile view with first image and scrollable gallery */}
       {isMobile ? (
-        <div>
+        <div key={`mobile-${forceUpdate}-${invoices.length}`}>
           <div className="mb-6">
             <div className="text-center mb-3">
               <h3 className="text-lg font-semibold text-white">לצפייה באלבום החשבוניות</h3>
@@ -79,16 +93,23 @@ export default function AlbumGrid({
               className="w-48 h-48 mx-auto bg-gray-100 relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-300"
               onClick={() => setShowMobileGallery(true)}
             >
-                             <Image
-                 src={invoices[0].downloadURL}
-                 alt={invoices[0].name}
-                 width={192}
-                 height={192}
-                 className="w-full h-full object-cover hover:scale-105 transition-transform"
-                 onError={() => {
-                   console.error('Error loading first image:', invoices[0].name)
-                 }}
-               />
+              {invoices.length > 0 ? (
+                <Image
+                  key={`image-${invoices[0].id}-${forceUpdate}`}
+                  src={invoices[0].downloadURL}
+                  alt={invoices[0].name}
+                  width={192}
+                  height={192}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform"
+                  onError={() => {
+                    console.error('Error loading first image:', invoices[0].name)
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  📁
+                </div>
+              )}
               <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-2 text-sm">
                 {invoices.length} חשבוניות
               </div>

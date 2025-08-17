@@ -172,6 +172,11 @@ export default function InvoicesPage() {
               }
               return prev
             })
+            
+            // Force re-render for mobile
+            setTimeout(() => {
+              setInvoices(current => [...current])
+            }, 100)
           } else {
             console.log('Firebase not configured, using IndexedDB fallback...')
             throw new Error('Firebase not configured')
@@ -231,6 +236,11 @@ export default function InvoicesPage() {
               }
               return prev
             })
+            
+            // Force re-render for mobile
+            setTimeout(() => {
+              setInvoices(current => [...current])
+            }, 100)
           } else {
             throw new Error(`שגיאה בשמירת החשבונית: ${invoiceData.name}`)
           }
@@ -241,9 +251,17 @@ export default function InvoicesPage() {
       alert('החשבוניות נוספו בהצלחה!')
       console.log('=== INVOICE ATTACHMENT COMPLETED ===')
       
-      // Reload from server to ensure sync across all devices
-      console.log('Reloading invoices to ensure cross-device sync...')
-      await loadInvoices(month, year)
+      // Force immediate update for mobile
+      setTimeout(async () => {
+        // Reload from server to ensure sync across all devices
+        console.log('Reloading invoices to ensure cross-device sync...')
+        await loadInvoices(month, year)
+      }, 200)
+      
+      // Force immediate re-render
+      setTimeout(() => {
+        setInvoices(current => [...current])
+      }, 100)
       
     } catch (error) {
       console.error('=== ERROR IN INVOICE ATTACHMENT ===')
@@ -306,6 +324,19 @@ export default function InvoicesPage() {
       loadInvoices(selectedMonth, selectedYear)
     }
   }, [loadInvoices, selectedMonth, selectedYear])
+  
+  // Force re-render when invoices change
+  useEffect(() => {
+    console.log('Invoices state updated, count:', invoices.length)
+    
+    // Force immediate re-render for mobile
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+    if (isMobile) {
+      setTimeout(() => {
+        setInvoices(current => [...current])
+      }, 50)
+    }
+  }, [invoices])
 
 
 
@@ -415,7 +446,7 @@ export default function InvoicesPage() {
       />
 
       {/* Album Grid */}
-      <div className="mt-8">
+      <div className="mt-8" key={`album-${invoices.length}`}>
         <AlbumGrid
           invoices={invoices}
           isLoading={isLoading}
