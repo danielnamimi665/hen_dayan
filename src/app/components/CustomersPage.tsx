@@ -27,6 +27,7 @@ export default function CustomersPage() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false)
   const [showYearDropdown, setShowYearDropdown] = useState(false)
   const [message, setMessage] = useState<string>('')
+  const [isDirty, setIsDirty] = useState<boolean>(false)
   const [customersData, setCustomersData] = useState<CustomersData>({
     activeCustomers: [
       { id: 'customer-active-1', name: '', phone: '', notes: '', status: '' },
@@ -162,13 +163,14 @@ export default function CustomersPage() {
       savedCustomers: [...customersData.savedCustomers, newSavedRow]
     }
     setCustomersData(newData)
-    saveData(newData, selectedYear, selectedMonth)
+    setIsDirty(true)
   }
 
   // Manual save button handler – persists both tables for current month/year
-  const handleManualSave = () => {
+  const handleManualSave = async () => {
     try {
-      saveData(customersData, selectedYear, selectedMonth)
+      await saveData(customersData, selectedYear, selectedMonth)
+      setIsDirty(false)
       setMessage('הנתונים נשמרו')
       setTimeout(() => setMessage(''), 3000)
     } catch {
@@ -187,7 +189,7 @@ export default function CustomersPage() {
       )
     }
     setCustomersData(newData)
-    saveData(newData, selectedYear, selectedMonth)
+    setIsDirty(true)
     
     // Show message
     setMessage('תוכן השורה נמחק')
@@ -225,7 +227,7 @@ export default function CustomersPage() {
     }
 
     setCustomersData(newData)
-    saveData(newData, selectedYear, selectedMonth)
+    setIsDirty(true)
     
     // Show success message
     setMessage(`הלקוח נשמר בשורה ${emptyRowIndex + 1} בטבלה התחתונה`)
@@ -243,7 +245,7 @@ export default function CustomersPage() {
       )
     }
     setCustomersData(newData)
-    saveData(newData, selectedYear, selectedMonth)
+    setIsDirty(true)
     
     // Show message
     setMessage('תוכן השורה נמחק')
@@ -259,7 +261,7 @@ export default function CustomersPage() {
       )
     }
     setCustomersData(newData)
-    saveData(newData, selectedYear, selectedMonth)
+    setIsDirty(true)
   }
 
   // No editing for saved customers - read only
@@ -332,23 +334,7 @@ export default function CustomersPage() {
   // הוסר auto-save כדי למנוע דריסה של נתונים מהענן בהטענת דף.
   // נתונים נשמרים מיידית בכל שינוי (add/delete/update) וב-beforeunload.
 
-  // Save on tab close/refresh as safety
-  useEffect(() => {
-    const onBeforeUnload = () => {
-      try { saveData(customersData, selectedYear, selectedMonth) } catch {}
-    }
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        try { saveData(customersData, selectedYear, selectedMonth) } catch {}
-      }
-    }
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    window.addEventListener('beforeunload', onBeforeUnload)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-      window.removeEventListener('beforeunload', onBeforeUnload)
-    }
-  }, [customersData, selectedYear, selectedMonth, saveData])
+  // בוטלה שמירה אוטומטית בעת יציאה/ריענון כדי שלא תדרוס מצב שנשמר ידנית.
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -498,9 +484,6 @@ export default function CustomersPage() {
                   <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[120px]">
                     מספר טלפון
                   </th>
-                  <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[200px]">
-                    הערות
-                  </th>
                   <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[180px]">
                     סטטוס
                   </th>
@@ -523,19 +506,6 @@ export default function CustomersPage() {
                          value={row.phone}
                          onChange={(e) => handleActiveCustomerChange(row.id, 'phone', e.target.value)}
                          className="w-full text-right border-none outline-none bg-transparent text-black"
-                       />
-                    </td>
-                    <td className="border-l-2 border-b-2 border-black p-2 w-[200px]">
-                                             <textarea
-                         value={row.notes}
-                         onChange={(e) => handleActiveCustomerChange(row.id, 'notes', e.target.value)}
-                         className="w-full resize-none border-none outline-none bg-transparent text-black min-h-[40px]"
-                         rows={1}
-                         onInput={(e) => {
-                           const target = e.target as HTMLTextAreaElement;
-                           target.style.height = 'auto';
-                           target.style.height = target.scrollHeight + 'px';
-                         }}
                        />
                     </td>
                     <td className="border-b-2 border-r-2 border-black p-2 w-[180px]">
@@ -585,9 +555,6 @@ export default function CustomersPage() {
                   <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[120px]">
                     מספר טלפון
                   </th>
-                  <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[200px]">
-                    הערות
-                  </th>
                   <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[150px]">
                     סטטוס
                   </th>
@@ -611,15 +578,6 @@ export default function CustomersPage() {
                          value={row.phone}
                          onChange={(e) => handleSavedCustomerChange(row.id, 'phone', e.target.value)}
                          className="w-full text-right border-none outline-none bg-transparent text-black"
-                         readOnly
-                       />
-                    </td>
-                    <td className="border-l-2 border-b-2 border-black p-2 w-[200px]">
-                                             <textarea
-                         value={row.notes}
-                         onChange={(e) => handleSavedCustomerChange(row.id, 'notes', e.target.value)}
-                         className="w-full resize-none border-none outline-none bg-transparent text-black min-h-[40px]"
-                         rows={1}
                          readOnly
                        />
                     </td>
