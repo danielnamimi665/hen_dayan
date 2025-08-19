@@ -1,4 +1,17 @@
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  updateDoc,
+  getFirestore,
+  type DocumentData,
+  type WithFieldValue,
+  type UpdateData,
+  type DocumentReference,
+  type CollectionReference,
+} from 'firebase/firestore'
 import { getAuth, signInAnonymously } from 'firebase/auth'
 import { app } from '../firebase/config'
 
@@ -17,10 +30,11 @@ export class FirestoreDataService {
     }
   }
 
-  static async load<T>(collectionName: string, docId: string): Promise<T | null> {
+  static async load<T extends DocumentData>(collectionName: string, docId: string): Promise<T | null> {
     try {
       await FirestoreDataService.ensureAuth()
-      const ref = doc(FirestoreDataService.db, collectionName, docId)
+      const col = collection(FirestoreDataService.db, collectionName) as CollectionReference<T>
+      const ref = doc(col, docId) as DocumentReference<T>
       const snap = await getDoc(ref)
       if (snap.exists()) {
         return snap.data() as T
@@ -32,11 +46,13 @@ export class FirestoreDataService {
     }
   }
 
-  static async save<T>(collectionName: string, docId: string, data: T): Promise<boolean> {
+  static async save<T extends DocumentData>(collectionName: string, docId: string, data: T): Promise<boolean> {
     try {
       await FirestoreDataService.ensureAuth()
-      const ref = doc(FirestoreDataService.db, collectionName, docId)
-      await setDoc(ref, data)
+      const col = collection(FirestoreDataService.db, collectionName) as CollectionReference<T>
+      const ref = doc(col, docId) as DocumentReference<T>
+      // Cast for SDK compatibility: ensure data matches WithFieldValue<T>
+      await setDoc(ref, data as WithFieldValue<T>)
       return true
     } catch (err) {
       console.error(`[Firestore] save failed for ${collectionName}/${docId}:`, err)
