@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: '/favicon.ico' }],
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180' },
-      { url: '/apple-touch-icon-167.png', sizes: '167x167' },
-      { url: '/apple-touch-icon-152.png', sizes: '152x152' },
-      { url: '/apple-touch-icon-120.png', sizes: '120x120' }
+      { url: '/apple-touch-icon.png?v=3', sizes: '180x180' },
+      { url: '/apple-touch-icon-167.png?v=3', sizes: '167x167' },
+      { url: '/apple-touch-icon-152.png?v=3', sizes: '152x152' },
+      { url: '/apple-touch-icon-120.png?v=3', sizes: '120x120' }
     ],
   },
   themeColor: '#000000',

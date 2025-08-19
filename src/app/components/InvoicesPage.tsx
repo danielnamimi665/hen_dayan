@@ -94,18 +94,28 @@ export default function InvoicesPage() {
         const monthInvoices = await InvoicesDB.getInvoicesByMonthYear(month, year)
         console.log(`Loaded ${monthInvoices.length} invoices from IndexedDB fallback for ${month}/${year}`)
         
-        const convertedInvoices: InvoiceData[] = monthInvoices.map(inv => ({
-          id: inv.id,
-          name: inv.name,
-          createdAt: inv.createdAt,
-          type: inv.type,
-          size: inv.size,
-          width: inv.width || 0,
-          height: inv.height || 0,
-          month: inv.month || month,
-          year: inv.year || year,
-          storagePath: '',
-          downloadURL: inv.blob ? URL.createObjectURL(inv.blob) : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+        const convertedInvoices: InvoiceData[] = await Promise.all(monthInvoices.map(async (inv) => {
+          let dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+          if (inv.blob) {
+            dataUrl = await new Promise<string>((resolve) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : dataUrl)
+              reader.readAsDataURL(inv.blob!)
+            })
+          }
+          return {
+            id: inv.id,
+            name: inv.name,
+            createdAt: inv.createdAt,
+            type: inv.type,
+            size: inv.size,
+            width: inv.width || 0,
+            height: inv.height || 0,
+            month: inv.month || month,
+            year: inv.year || year,
+            storagePath: '',
+            downloadURL: dataUrl
+          }
         }))
         
         // Remove duplicates based on ID
@@ -214,20 +224,26 @@ export default function InvoicesPage() {
           if (success) {
             console.log('Invoice saved to IndexedDB fallback:', invoiceData.name)
             
-                                      // Convert to InvoiceData format for display
-              const fallbackInvoice: InvoiceData = {
-                id: invoiceData.id,
-                name: invoiceData.name,
-                createdAt: invoiceData.createdAt,
-                type: invoiceData.type,
-                size: invoiceData.size,
-                width: invoiceData.width || 0,
-                height: invoiceData.height || 0,
-                month: invoiceData.month || month,
-                year: invoiceData.year || year,
-                storagePath: '',
-                downloadURL: invoiceData.blob ? URL.createObjectURL(invoiceData.blob) : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-              }
+            // Convert blob to data URL for stable display across devices
+            const dataUrl = await new Promise<string>((resolve) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+              if (invoiceData.blob) reader.readAsDataURL(invoiceData.blob)
+            })
+
+            const fallbackInvoice: InvoiceData = {
+              id: invoiceData.id,
+              name: invoiceData.name,
+              createdAt: invoiceData.createdAt,
+              type: invoiceData.type,
+              size: invoiceData.size,
+              width: invoiceData.width || 0,
+              height: invoiceData.height || 0,
+              month: invoiceData.month || month,
+              year: invoiceData.year || year,
+              storagePath: '',
+              downloadURL: dataUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+            }
             
             console.log('[Attach] Fallback invoice created (IndexedDB):', { id: fallbackInvoice.id, month: fallbackInvoice.month, year: fallbackInvoice.year, previewLength: (fallbackInvoice.downloadURL || '').length })
             

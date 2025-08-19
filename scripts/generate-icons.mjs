@@ -20,7 +20,7 @@ async function ensureSourceBuffer() {
 }
 
 async function generateIcon(size, srcBuffer) {
-  const paddingFraction = 0.15 // 15% padding each side
+  const paddingFraction = 0.10 // 10% padding each side (significantly bigger, still safe)
   const inner = Math.round(size * (1 - paddingFraction * 2))
 
   // Resize source to fit inside inner box preserving aspect ratio
