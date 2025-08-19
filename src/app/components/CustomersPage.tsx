@@ -302,8 +302,6 @@ export default function CustomersPage() {
 
   // Handle month selection
   const handleMonthSelect = (month: number) => {
-    // Save current data before switching month
-    saveData(customersData, selectedYear, selectedMonth)
     setSelectedMonth(month)
     setShowMonthDropdown(false)
     loadData(selectedYear, month)
@@ -311,8 +309,6 @@ export default function CustomersPage() {
 
   // Handle year selection
   const handleYearSelect = (year: number) => {
-    // Save current data before switching year
-    saveData(customersData, selectedYear, selectedMonth)
     setSelectedYear(year)
     setShowYearDropdown(false)
     loadData(year, selectedMonth)
