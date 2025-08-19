@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { FirestoreDataService } from '../services/firestoreData'
 
 interface ToolTable {
   id: string
@@ -91,10 +92,19 @@ export default function ToolsMaintenancePage() {
     return Array.from({ length: 5 }, (_, i) => currentYear + i)
   }, [])
 
-  // Load tools data from localStorage
-  const loadToolsData = useCallback((month: number, year: number) => {
+  // Load tools data from Firestore (with localStorage fallback)
+  const loadToolsData = useCallback(async (month: number, year: number) => {
     try {
       const key = `tools:${year}-${month.toString().padStart(2, '0')}`
+      try {
+        const cloud = await FirestoreDataService.load<ToolsData>('tools', `${year}-${month.toString().padStart(2, '0')}`)
+        if (cloud && Array.isArray(cloud.tables) && cloud.tables.length === 5) {
+          // Titles will be normalized below as well
+          setToolsData(cloud)
+          console.log(`[Cloud] Loaded tools for ${month}/${year}`)
+          return
+        }
+      } catch {}
       const saved = localStorage.getItem(key)
       
       // Load global titles first
@@ -278,10 +288,14 @@ export default function ToolsMaintenancePage() {
     }
   }, [])
 
-  // Save tools data to localStorage
-  const saveToolsData = useCallback((data: ToolsData, month: number, year: number) => {
+  // Save tools data to Firestore (and local backup)
+  const saveToolsData = useCallback(async (data: ToolsData, month: number, year: number) => {
     try {
       const key = `tools:${year}-${month.toString().padStart(2, '0')}`
+      try {
+        const ok = await FirestoreDataService.save<ToolsData>('tools', `${year}-${month.toString().padStart(2, '0')}`, data)
+        if (ok) console.log(`[Cloud] Saved tools for ${month}/${year}`)
+      } catch {}
       localStorage.setItem(key, JSON.stringify(data))
       console.log(`Saved tools data for ${month}/${year}:`, data.tables.length, 'tables')
     } catch (error) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { FirestoreDataService } from '../services/firestoreData'
 
 interface ExpenseRow {
   id: string
@@ -43,10 +44,20 @@ export default function ExpensesPage() {
     return Array.from({ length: 5 }, (_, i) => currentYear + i)
   }, [])
 
-  // Load expenses from localStorage
-  const loadExpenses = useCallback((month: number, year: number) => {
+  // Load expenses from Firestore (with localStorage fallback)
+  const loadExpenses = useCallback(async (month: number, year: number) => {
     try {
       const key = `expenses:${year}-${month.toString().padStart(2, '0')}`
+      try {
+        const cloud = await FirestoreDataService.load<ExpensesData>('expenses', `${year}-${month.toString().padStart(2, '0')}`)
+        if (cloud && Array.isArray(cloud.rows) && cloud.rows.length >= 2) {
+          setExpensesData(cloud)
+          console.log(`[Cloud] Loaded expenses for ${month}/${year}:`, cloud.rows.length, 'rows')
+          return
+        }
+      } catch {
+        console.warn('[Cloud] expenses load failed, using localStorage if exists')
+      }
       const saved = localStorage.getItem(key)
       if (saved) {
         const parsed = JSON.parse(saved)
@@ -83,10 +94,14 @@ export default function ExpensesPage() {
     }
   }, [])
 
-  // Save expenses to localStorage
-  const saveExpenses = useCallback((data: ExpensesData, month: number, year: number) => {
+  // Save expenses to Firestore (and localStorage backup)
+  const saveExpenses = useCallback(async (data: ExpensesData, month: number, year: number) => {
     try {
       const key = `expenses:${year}-${month.toString().padStart(2, '0')}`
+      try {
+        const ok = await FirestoreDataService.save<ExpensesData>('expenses', `${year}-${month.toString().padStart(2, '0')}` , data)
+        if (ok) console.log(`[Cloud] Saved expenses for ${month}/${year}`)
+      } catch {}
       localStorage.setItem(key, JSON.stringify(data))
       console.log(`Saved expenses for ${month}/${year}:`, data.rows.length, 'rows')
     } catch (error) {

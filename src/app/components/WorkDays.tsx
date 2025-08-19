@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { FirestoreDataService } from '../services/firestoreData'
 
 interface WorkDayRow {
   id: string
@@ -38,11 +39,21 @@ export default function WorkDays() {
     return [2025, 2026, 2027, 2028, 2029]
   }, [])
 
-  // Load data from localStorage
-  const loadData = useCallback((year: number, month: number) => {
+  // Load data from Firestore (with localStorage fallback)
+  const loadData = useCallback(async (year: number, month: number) => {
     // month is 0-indexed (0-11), convert to 1-indexed (1-12) for localStorage key
     const monthKey = month + 1
     const key = `workdays:${year}-${String(monthKey).padStart(2, '0')}`
+    try {
+      const cloud = await FirestoreDataService.load<WorkDaysData>('workdays', `${year}-${String(monthKey).padStart(2, '0')}`)
+      if (cloud && cloud.rows && Array.isArray(cloud.rows) && cloud.rows.length >= 2) {
+        setWorkDaysData(cloud)
+        console.log(`[Cloud] Loaded workdays ${monthKey}/${year}:`, cloud.rows.length, 'rows')
+        return
+      }
+    } catch (e) {
+      console.warn('[Cloud] workdays load failed, using localStorage if exists')
+    }
     const saved = localStorage.getItem(key)
     
     if (saved) {
@@ -88,12 +99,18 @@ export default function WorkDays() {
     }
   }, [])
 
-  // Save data to localStorage
-  const saveData = useCallback((data: WorkDaysData, year: number, month: number) => {
+  // Save data to Firestore (and also persist to localStorage as backup)
+  const saveData = useCallback(async (data: WorkDaysData, year: number, month: number) => {
     try {
       // month is 0-indexed (0-11), convert to 1-indexed (1-12) for localStorage key
       const monthKey = month + 1
       const key = `workdays:${year}-${String(monthKey).padStart(2, '0')}`
+      try {
+        const ok = await FirestoreDataService.save<WorkDaysData>('workdays', `${year}-${String(monthKey).padStart(2, '0')}`, data)
+        if (ok) console.log(`[Cloud] Saved workdays for ${monthKey}/${year}`)
+      } catch (e) {
+        console.warn('[Cloud] workdays save failed, keeping local backup')
+      }
       localStorage.setItem(key, JSON.stringify(data))
       console.log(`Saved workdays data for ${monthKey}/${year}:`, data.rows.length, 'rows')
     } catch (error) {

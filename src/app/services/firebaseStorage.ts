@@ -19,7 +19,8 @@ import {
   uploadBytes, 
   getDownloadURL, 
   deleteObject,
-  listAll 
+  listAll,
+  getStorage
 } from 'firebase/storage';
 import { 
   collection, 
@@ -30,15 +31,32 @@ import {
   query,
   where,
   orderBy,
-  limit
+  limit,
+  getFirestore
 } from 'firebase/firestore';
-import { storage, db } from '../firebase/config';
+import { getAuth, signInAnonymously } from 'firebase/auth';
+import { app } from '../firebase/config';
 import { ImageProcessor } from './imageUtils';
 
 import { FirebaseInvoice } from '../types/invoice'
 
 export class FirebaseStorageService {
-  private static storageRef = ref(storage, 'invoices');
+  private static storage = getStorage(app);
+  private static db = getFirestore(app);
+  private static storageRef = ref(FirebaseStorageService.storage, 'invoices');
+
+  private static async ensureAuth(): Promise<void> {
+    try {
+      if (typeof window === 'undefined') return;
+      const auth = getAuth(app);
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+    } catch (err) {
+      // Non-fatal; Firestore rules may still allow public read in some setups
+      console.warn('ensureAuth: anonymous sign-in failed or not required.', err);
+    }
+  }
 
   // Check if Firebase is properly configured
   static async isFirebaseConfigured(): Promise<boolean> {
@@ -46,14 +64,15 @@ export class FirebaseStorageService {
       console.log('Checking Firebase configuration...')
       
       // Check if Firebase app is initialized
-      if (!db || !storage) {
+      if (!FirebaseStorageService.db || !FirebaseStorageService.storage) {
         console.error('Firebase app not initialized')
         return false
       }
       
       // Try to access Firestore to check if it's working
       console.log('Testing Firestore connection...')
-      const testQuery = query(collection(db, 'invoices'), limit(1));
+      await FirebaseStorageService.ensureAuth();
+      const testQuery = query(collection(FirebaseStorageService.db, 'invoices'), limit(1));
       await getDocs(testQuery);
       console.log('Firebase is properly configured - Firestore working');
       return true;
@@ -102,6 +121,7 @@ export class FirebaseStorageService {
   ): Promise<FirebaseInvoice> {
     try {
       console.log(`Starting upload for file: ${file.name}, month: ${month}, year: ${year}`);
+      await FirebaseStorageService.ensureAuth();
 
       // Process image (resize/compress) before storing to Firestore to fit document limits
       const processed = await ImageProcessor.processImage(file);
@@ -137,7 +157,7 @@ export class FirebaseStorageService {
 
       console.log('[Firebase] Saving image data + metadata to Firestore...');
       // Save metadata + image data to Firestore
-      const docRef = await addDoc(collection(db, 'invoices'), {
+      const docRef = await addDoc(collection(FirebaseStorageService.db, 'invoices'), {
         ...invoice,
         imageData: base64 // store raw base64 to reduce Firestore doc size slightly
       });
@@ -160,10 +180,11 @@ export class FirebaseStorageService {
   ): Promise<FirebaseInvoice[]> {
     try {
       console.log(`Fetching invoices for month: ${month}, year: ${year}`);
+      await FirebaseStorageService.ensureAuth();
       
       // Preferred query (requires composite index: month asc, year asc, createdAt desc)
       const indexedQuery = query(
-        collection(db, 'invoices'),
+        collection(FirebaseStorageService.db, 'invoices'),
         where('month', '==', month),
         where('year', '==', year),
         orderBy('createdAt', 'desc')
@@ -191,7 +212,7 @@ export class FirebaseStorageService {
       console.warn('Firestore composite index missing. Falling back to non-indexed query and client-side sort.');
       // Fallback query without orderBy (no composite index required)
       const fallbackQuery = query(
-        collection(db, 'invoices'),
+        collection(FirebaseStorageService.db, 'invoices'),
         where('month', '==', month),
         where('year', '==', year)
       );
@@ -217,7 +238,7 @@ export class FirebaseStorageService {
       // Delete Storage object only when storagePath exists
       if (invoice.storagePath && invoice.storagePath.trim() !== '') {
         try {
-          const storageRef = ref(storage, invoice.storagePath);
+          const storageRef = ref(FirebaseStorageService.storage, invoice.storagePath);
           await deleteObject(storageRef);
           console.log('[Delete] Storage object deleted:', invoice.storagePath);
         } catch (storageErr) {
@@ -225,7 +246,7 @@ export class FirebaseStorageService {
         }
       }
       // Delete Firestore document
-      await deleteDoc(doc(db, 'invoices', invoice.id));
+      await deleteDoc(doc(FirebaseStorageService.db, 'invoices', invoice.id));
       console.log('[Delete] Firestore document deleted:', invoice.id);
       return true;
     } catch (error) {
@@ -237,7 +258,8 @@ export class FirebaseStorageService {
   // Get all invoices (for debugging)
   static async getAllInvoices(): Promise<FirebaseInvoice[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, 'invoices'));
+      await FirebaseStorageService.ensureAuth();
+      const querySnapshot = await getDocs(collection(FirebaseStorageService.db, 'invoices'));
       const invoices: FirebaseInvoice[] = [];
       
       querySnapshot.forEach((doc) => {

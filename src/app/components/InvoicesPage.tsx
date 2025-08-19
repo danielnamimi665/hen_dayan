@@ -48,12 +48,12 @@ export default function InvoicesPage() {
   }, [])
 
   // Load invoices from Firebase (with IndexedDB fallback)
-  const loadInvoices = useCallback(async (month: number, year: number) => {
+  const loadInvoices = useCallback(async (month: number, year: number, showLoading: boolean = false) => {
     console.log(`=== LOADING INVOICES ===`)
     console.log(`Target month: ${month}, year: ${year}`)
     console.log(`Current selected month: ${selectedMonth}, year: ${selectedYear}`)
     
-    setIsLoading(true)
+    if (showLoading) setIsLoading(true)
     setLoadErrors([])
 
     try {
@@ -94,19 +94,19 @@ export default function InvoicesPage() {
         const monthInvoices = await InvoicesDB.getInvoicesByMonthYear(month, year)
         console.log(`Loaded ${monthInvoices.length} invoices from IndexedDB fallback for ${month}/${year}`)
         
-                           const convertedInvoices: InvoiceData[] = monthInvoices.map(inv => ({
-            id: inv.id,
-            name: inv.name,
-            createdAt: inv.createdAt,
-            type: inv.type,
-            size: inv.size,
-            width: inv.width || 0,
-            height: inv.height || 0,
-            month: inv.month || month,
-            year: inv.year || year,
-            storagePath: '',
-            downloadURL: inv.blob ? URL.createObjectURL(inv.blob) : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-          }))
+        const convertedInvoices: InvoiceData[] = monthInvoices.map(inv => ({
+          id: inv.id,
+          name: inv.name,
+          createdAt: inv.createdAt,
+          type: inv.type,
+          size: inv.size,
+          width: inv.width || 0,
+          height: inv.height || 0,
+          month: inv.month || month,
+          year: inv.year || year,
+          storagePath: '',
+          downloadURL: inv.blob ? URL.createObjectURL(inv.blob) : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+        }))
         
         // Remove duplicates based on ID
         const uniqueInvoices = convertedInvoices.filter((invoice, index, self) => 
@@ -118,7 +118,7 @@ export default function InvoicesPage() {
         
         // Set invoices directly for the current month/year
         setInvoices(uniqueInvoices)
-        setLoadErrors(['התמונות נטענו מהמכשיר המקומי. כדי לסנכרן בין מכשירים, הגדר Firebase.'])
+        // No message in production to avoid confusion
       } catch (fallbackError) {
         console.error('Both Firebase and IndexedDB failed:', fallbackError)
         setLoadErrors([`שגיאה בטעינת חשבוניות: ${fallbackError instanceof Error ? fallbackError.message : 'שגיאה לא ידועה'}`])
@@ -266,7 +266,7 @@ export default function InvoicesPage() {
       setTimeout(async () => {
         // Reload from server to ensure sync across all devices
         console.log('Reloading invoices to ensure cross-device sync...')
-        await loadInvoices(month, year)
+        await loadInvoices(month, year, false)
       }, 200)
       
       // Force immediate re-render
@@ -312,8 +312,8 @@ export default function InvoicesPage() {
     console.log(`Month selection changed from ${selectedMonth} to ${month}`)
     setSelectedMonth(month)
     setShowMonthDropdown(false)
-    // Load invoices for the new month with current year
-    loadInvoices(month, selectedYear)
+    // Load invoices for the new month with current year (show loading spinner for user action)
+    loadInvoices(month, selectedYear, true)
   }
 
   // Handle year selection
@@ -321,8 +321,8 @@ export default function InvoicesPage() {
     console.log(`Year selection changed from ${selectedYear} to ${year}`)
     setSelectedYear(year)
     setShowYearDropdown(false)
-    // Load invoices for the current month with new year
-    loadInvoices(selectedMonth, year)
+    // Load invoices for the current month with new year (show loading spinner for user action)
+    loadInvoices(selectedMonth, year, true)
   }
 
   // Load invoices when component mounts or month/year changes
@@ -330,7 +330,8 @@ export default function InvoicesPage() {
     console.log('Component mounted or month/year changed, loading invoices...')
     // Only load invoices if we have a valid month/year selection
     if (selectedMonth && selectedYear) {
-      loadInvoices(selectedMonth, selectedYear)
+      // Initial load: don't show spinner
+      loadInvoices(selectedMonth, selectedYear, false)
     }
   }, [loadInvoices, selectedMonth, selectedYear])
   

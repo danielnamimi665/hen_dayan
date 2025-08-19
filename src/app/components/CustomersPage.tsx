@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { FirestoreDataService } from '../services/firestoreData'
 
 interface CustomerRow {
   id: string
@@ -46,10 +47,18 @@ export default function CustomersPage() {
     return [2025, 2026, 2027, 2028, 2029]
   }, [])
 
-  // Load data from localStorage
-  const loadData = useCallback((year: number, month: number) => {
+  // Load data from Firestore (with localStorage fallback)
+  const loadData = useCallback(async (year: number, month: number) => {
     const monthKey = month + 1
     const key = `customers:${year}-${String(monthKey).padStart(2, '0')}`
+    try {
+      const cloud = await FirestoreDataService.load<CustomersData>('customers', `${year}-${String(monthKey).padStart(2, '0')}`)
+      if (cloud && cloud.activeCustomers && cloud.savedCustomers) {
+        setCustomersData(cloud)
+        console.log(`[Cloud] Loaded customers for ${monthKey}/${year}`)
+        return
+      }
+    } catch {}
     const saved = localStorage.getItem(key)
     
     if (saved) {
@@ -113,11 +122,15 @@ export default function CustomersPage() {
     }
   }, [])
 
-  // Save data to localStorage
-  const saveData = useCallback((data: CustomersData, year: number, month: number) => {
+  // Save data to Firestore (and localStorage backup)
+  const saveData = useCallback(async (data: CustomersData, year: number, month: number) => {
     try {
       const monthKey = month + 1
       const key = `customers:${year}-${String(monthKey).padStart(2, '0')}`
+      try {
+        const ok = await FirestoreDataService.save<CustomersData>('customers', `${year}-${String(monthKey).padStart(2, '0')}`, data)
+        if (ok) console.log(`[Cloud] Saved customers for ${monthKey}/${year}`)
+      } catch {}
       localStorage.setItem(key, JSON.stringify(data))
       console.log(`Saved customers data for ${monthKey}/${year}`)
     } catch (error) {
