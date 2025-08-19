@@ -165,6 +165,17 @@ export default function CustomersPage() {
     saveData(newData, selectedYear, selectedMonth)
   }
 
+  // Manual save button handler – persists both tables for current month/year
+  const handleManualSave = () => {
+    try {
+      saveData(customersData, selectedYear, selectedMonth)
+      setMessage('הנתונים נשמרו')
+      setTimeout(() => setMessage(''), 3000)
+    } catch {
+      /* no-op */
+    }
+  }
+
   // Delete row from active customers (V button) - Clear row content
   const deleteActiveRow = (id: string) => {
     const newData = {
@@ -443,6 +454,13 @@ export default function CustomersPage() {
             className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
           >
             הוסף שורה
+          </button>
+          {/* Manual Save Button */}
+          <button
+            onClick={handleManualSave}
+            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
+          >
+            שמור
           </button>
         </div>
         
