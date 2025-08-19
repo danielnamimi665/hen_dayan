@@ -452,7 +452,7 @@ export default function CustomersPage() {
           {/* Add Row Button */}
           <button
             onClick={addRow}
-            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium w-[30%] sm:w-auto"
+            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors shadow-sm font-medium w-[30%] sm:w-auto"
           >
             הוסף שורה
           </button>
