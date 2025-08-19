@@ -382,14 +382,13 @@ export default function CustomersPage() {
            </div>
          </div>
         
-        {/* Controls */}
-        <div className="flex justify-center mb-6">
-          <div className="w-[90%] flex flex-row gap-2 sm:w-auto sm:gap-4 sm:flex-row sm:justify-center">
+        {/* Controls - match ExpensesPage sizing/styles */}
+        <div className="flex justify-center gap-4 mb-6">
           {/* Month Dropdown */}
-          <div className="relative w-[30%] flex justify-center sm:w-auto" ref={monthDropdownRef}>
+          <div className="relative" ref={monthDropdownRef}>
             <button
               onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black w-full sm:w-auto"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{HEBREW_MONTHS[selectedMonth]}</span>
               <svg 
@@ -418,10 +417,10 @@ export default function CustomersPage() {
           </div>
 
           {/* Year Dropdown */}
-          <div className="relative w-[30%] flex justify-center sm:w-auto" ref={yearDropdownRef}>
+          <div className="relative" ref={yearDropdownRef}>
             <button
               onClick={() => setShowYearDropdown(!showYearDropdown)}
-              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black w-full sm:w-auto"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{selectedYear}</span>
               <svg 
@@ -452,9 +451,9 @@ export default function CustomersPage() {
           {/* Add Row Button */}
           <button
             onClick={addRow}
-            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors shadow-sm font-medium w-[30%] sm:w-auto"
+            className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm border-2 border-black"
           >
-            הוסף שורה
+            הוסף
           </button>
           {/* Manual Save Button on desktop/tablet inline; on mobile it will also show below as full width */}
           <button
@@ -463,7 +462,6 @@ export default function CustomersPage() {
           >
             שמור
           </button>
-          </div>
         </div>
 
         {/* Mobile-only full-width Save button under the three controls */}
