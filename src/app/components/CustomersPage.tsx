@@ -322,23 +322,25 @@ export default function CustomersPage() {
     loadData(currentYear, currentMonth)
   }, []) // Empty dependency array - only run once on mount
 
-  // Auto-save data every 5 seconds to ensure data persistence
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Save current data every 5 seconds - only for current month/year
-      saveData(customersData, selectedYear, selectedMonth)
-    }, 5000) // 5 seconds
-
-    return () => clearInterval(interval)
-  }, [customersData, selectedYear, selectedMonth, saveData])
+  // הוסר auto-save כדי למנוע דריסה של נתונים מהענן בהטענת דף.
+  // נתונים נשמרים מיידית בכל שינוי (add/delete/update) וב-beforeunload.
 
   // Save on tab close/refresh as safety
   useEffect(() => {
     const onBeforeUnload = () => {
       try { saveData(customersData, selectedYear, selectedMonth) } catch {}
     }
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        try { saveData(customersData, selectedYear, selectedMonth) } catch {}
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
     window.addEventListener('beforeunload', onBeforeUnload)
-    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('beforeunload', onBeforeUnload)
+    }
   }, [customersData, selectedYear, selectedMonth, saveData])
 
   // Close dropdowns when clicking outside

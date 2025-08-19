@@ -15,7 +15,6 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
   const [error, setError] = useState<string>('')
   
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const lastPressRef = useRef<number>(0)
 
@@ -108,7 +107,6 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
       
       // Reset input values
       if (fileInputRef.current) fileInputRef.current.value = ''
-      if (cameraInputRef.current) cameraInputRef.current.value = ''
       if (galleryInputRef.current) galleryInputRef.current.value = ''
 
       // Pass processed files to parent component
@@ -156,13 +154,6 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
         {isMobile && (
           <div className="flex flex-col gap-3 mb-4">
             <button
-              onClick={singlePress(() => cameraInputRef.current?.click())}
-              onTouchEnd={singlePress(() => cameraInputRef.current?.click())}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors"
-            >
-              📸 צילום תמונה
-            </button>
-            <button
               onClick={singlePress(() => galleryInputRef.current?.click())}
               onTouchEnd={singlePress(() => galleryInputRef.current?.click())}
               className="bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
@@ -193,14 +184,7 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
           onChange={(e) => handleFileSelect(e.target.files)}
           className="hidden"
         />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={(e) => handleFileSelect(e.target.files)}
-          className="hidden"
-        />
+        {/* צילום תמונה הוסר לפי דרישת הלקוח */}
         <input
           ref={galleryInputRef}
           type="file"
