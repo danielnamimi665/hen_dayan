@@ -278,39 +278,19 @@ export default function CustomersPage() {
 
   // Handle month selection
   const handleMonthSelect = (month: number) => {
+    // Save current data before switching month
+    saveData(customersData, selectedYear, selectedMonth)
     setSelectedMonth(month)
     setShowMonthDropdown(false)
-         // Clear current data before loading new month data
-     setCustomersData({
-       activeCustomers: [
-         { id: `customer-active-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' },
-         { id: `customer-active-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' }
-       ],
-       savedCustomers: [
-         { id: `customer-saved-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' },
-         { id: `customer-saved-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' }
-       ]
-     })
-    // Load data for the new month
     loadData(selectedYear, month)
   }
 
   // Handle year selection
   const handleYearSelect = (year: number) => {
+    // Save current data before switching year
+    saveData(customersData, selectedYear, selectedMonth)
     setSelectedYear(year)
     setShowYearDropdown(false)
-         // Clear current data before loading new year data
-     setCustomersData({
-       activeCustomers: [
-         { id: `customer-active-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' },
-         { id: `customer-active-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' }
-       ],
-       savedCustomers: [
-         { id: `customer-saved-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' },
-         { id: `customer-saved-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: '', phone: '', notes: '', status: '' }
-       ]
-     })
-    // Load data for the new year
     loadData(year, selectedMonth)
   }
 
@@ -339,6 +319,15 @@ export default function CustomersPage() {
     return () => clearInterval(interval)
   }, [customersData, selectedYear, selectedMonth, saveData])
 
+  // Save on tab close/refresh as safety
+  useEffect(() => {
+    const onBeforeUnload = () => {
+      try { saveData(customersData, selectedYear, selectedMonth) } catch {}
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [customersData, selectedYear, selectedMonth, saveData])
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -362,7 +351,7 @@ export default function CustomersPage() {
       <div className="mb-8">
                  {/* Category title with styled rectangle */}
          <div className="mb-4 flex justify-center">
-           <div className="bg-white border-2 border-black rounded-3xl px-8 py-4 shadow-lg">
+           <div className="bg-white/90 border-2 border-black rounded-3xl px-8 py-4 shadow-lg">
              <h1 className="text-4xl font-bold text-black text-center lg:text-4xl lg:mb-0 text-3xl mb-0">חזרה ללקוחות</h1>
            </div>
          </div>
@@ -373,7 +362,7 @@ export default function CustomersPage() {
           <div className="relative" ref={monthDropdownRef}>
             <button
               onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{HEBREW_MONTHS[selectedMonth]}</span>
               <svg 
@@ -405,7 +394,7 @@ export default function CustomersPage() {
           <div className="relative" ref={yearDropdownRef}>
             <button
               onClick={() => setShowYearDropdown(!showYearDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{selectedYear}</span>
               <svg 
@@ -436,7 +425,7 @@ export default function CustomersPage() {
           {/* Add Row Button */}
           <button
             onClick={addRow}
-            className="bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
+            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
           >
             הוסף שורה
           </button>
@@ -459,11 +448,11 @@ export default function CustomersPage() {
       {/* First Table - חזרה ללקוחות */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-4 text-center">חזרה ללקוחות</h2>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
+        <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
           <div className="overflow-x-auto">
             <table className="w-full table-fixed">
               <thead>
-                <tr className="bg-white border-2 border-black">
+                <tr className="bg-white/90 border-2 border-black">
                   <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[150px]">
                     שם
                   </th>
@@ -480,7 +469,7 @@ export default function CustomersPage() {
               </thead>
               <tbody>
                 {customersData.activeCustomers.map((row) => (
-                  <tr key={row.id} className="bg-white border-b-2 border-black hover:bg-gray-50">
+                  <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
                     <td className="border-l-2 border-b-2 border-black p-2 w-[150px]">
                                              <input
                          type="text"
@@ -546,11 +535,11 @@ export default function CustomersPage() {
       {/* Second Table - שמירת לקוח */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-4 text-center">שמירת לקוח</h2>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
+        <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
           <div className="overflow-x-auto">
             <table className="w-full table-fixed">
               <thead>
-                <tr className="bg-white border-2 border-black">
+                <tr className="bg-white/90 border-2 border-black">
                   <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black border-l-2 border-black w-[150px]">
                     שם
                   </th>
@@ -567,7 +556,7 @@ export default function CustomersPage() {
               </thead>
               <tbody>
                 {customersData.savedCustomers.map((row) => (
-                  <tr key={row.id} className="bg-white border-b-2 border-black hover:bg-gray-50">
+                  <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
                     <td className="border-l-2 border-b-2 border-black p-2 w-[150px]">
                                              <input
                          type="text"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Header from './Header'
 import Categories from './Categories'
 import ContentArea from './ContentArea'
@@ -20,8 +20,20 @@ export default function MainPage({ onLogout }: MainPageProps) {
     'חזרה ללקוחות'
   ]
 
+  // Mobile-only background override: use beckround.jpg on small screens
+  const [bgUrl, setBgUrl] = useState<string>('/homepage.jpg')
+  useEffect(() => {
+    try {
+      if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+        setBgUrl('/beckround.jpg')
+      }
+    } catch {
+      /* no-op */
+    }
+  }, [])
+
   return (
-    <div className="min-h-screen" style={{ backgroundImage: 'url(/homepage.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+    <div className="min-h-screen" style={{ backgroundImage: `url(${bgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
       <Header onLogout={onLogout} />
       <Categories 
         categories={categories}

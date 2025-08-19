@@ -96,6 +96,8 @@ export default function ExpensesPage() {
 
   // Handle month selection
   const handleMonthSelect = (month: number) => {
+    // Save current month before switching
+    saveExpenses(expensesData, selectedMonth, selectedYear)
     setSelectedMonth(month)
     setShowMonthDropdown(false)
     loadExpenses(month, selectedYear)
@@ -103,6 +105,8 @@ export default function ExpensesPage() {
 
   // Handle year selection
   const handleYearSelect = (year: number) => {
+    // Save current year before switching
+    saveExpenses(expensesData, selectedMonth, selectedYear)
     setSelectedYear(year)
     setShowYearDropdown(false)
     loadExpenses(selectedMonth, year)
@@ -169,6 +173,15 @@ export default function ExpensesPage() {
     loadExpenses(selectedMonth, selectedYear)
   }, [loadExpenses, selectedMonth, selectedYear])
 
+  // Save on tab close/refresh for safety
+  useEffect(() => {
+    const onBeforeUnload = () => {
+      try { saveExpenses(expensesData, selectedMonth, selectedYear) } catch {}
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [expensesData, selectedMonth, selectedYear, saveExpenses])
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -203,7 +216,7 @@ export default function ExpensesPage() {
           <div className="relative" ref={monthDropdownRef}>
             <button
               onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{HEBREW_MONTHS[selectedMonth - 1]}</span>
               <svg 
@@ -235,7 +248,7 @@ export default function ExpensesPage() {
           <div className="relative" ref={yearDropdownRef}>
             <button
               onClick={() => setShowYearDropdown(!showYearDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{selectedYear}</span>
               <svg 
@@ -266,7 +279,7 @@ export default function ExpensesPage() {
           {/* Add Row Button */}
           <button
             onClick={handleAddRow}
-            className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm border-2 border-black"
+            className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm border-2 border-black"
           >
             הוסף שורה
           </button>
@@ -275,11 +288,11 @@ export default function ExpensesPage() {
 
       {/* Expenses Table */}
       <div className="flex justify-center">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
+        <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
           <div className="overflow-x-auto">
             <table className="w-full table-fixed">
               <thead>
-                <tr className="bg-white border-2 border-black">
+                <tr className="bg-white/90 border-2 border-black">
                   <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black w-[200px]">
                     מלל חופשי
                   </th>
@@ -291,7 +304,7 @@ export default function ExpensesPage() {
               </thead>
               <tbody>
                 {expensesData.rows.map((row, index) => (
-                  <tr key={row.id} className="bg-white border-b-2 border-black hover:bg-gray-50">
+                  <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
                     <td className="border-l-2 border-b-2 border-black p-2 w-[200px]">
                       <textarea
                         value={row.text}
@@ -326,7 +339,7 @@ export default function ExpensesPage() {
                   </tr>
                 ))}
                 {/* Total Row */}
-                <tr className="bg-white border-2 border-black font-bold">
+                <tr className="bg-white/90 border-2 border-black font-bold">
                   <td className="px-6 py-3 text-right text-black border-t-2 border-black border-r-4 border-r-black w-[200px]">
                     סה״כ
                   </td>

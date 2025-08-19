@@ -291,6 +291,8 @@ export default function ToolsMaintenancePage() {
 
   // Handle month selection
   const handleMonthSelect = (month: number) => {
+    // Save current data before switching month
+    saveToolsData(toolsData, selectedMonth, selectedYear)
     setSelectedMonth(month)
     setShowMonthDropdown(false)
     loadToolsData(month, selectedYear)
@@ -298,6 +300,8 @@ export default function ToolsMaintenancePage() {
 
   // Handle year selection
   const handleYearSelect = (year: number) => {
+    // Save current data before switching year
+    saveToolsData(toolsData, selectedMonth, selectedYear)
     setSelectedYear(year)
     setShowYearDropdown(false)
     loadToolsData(selectedMonth, year)
@@ -417,6 +421,15 @@ export default function ToolsMaintenancePage() {
     loadToolsData(selectedMonth, selectedYear)
   }, [loadToolsData, selectedMonth, selectedYear])
 
+  // Save on tab close/refresh
+  useEffect(() => {
+    const onBeforeUnload = () => {
+      try { saveToolsData(toolsData, selectedMonth, selectedYear) } catch {}
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [toolsData, selectedMonth, selectedYear, saveToolsData])
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -451,7 +464,7 @@ export default function ToolsMaintenancePage() {
           <div className="relative" ref={monthDropdownRef}>
             <button
               onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{HEBREW_MONTHS[selectedMonth - 1]}</span>
               <svg 
@@ -483,7 +496,7 @@ export default function ToolsMaintenancePage() {
           <div className="relative" ref={yearDropdownRef}>
             <button
               onClick={() => setShowYearDropdown(!showYearDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{selectedYear}</span>
               <svg 
@@ -516,7 +529,7 @@ export default function ToolsMaintenancePage() {
       {/* Tools Tables */}
       <div className="space-y-6">
         {toolsData.tables.map((table, tableIndex) => (
-          <div key={table.id} className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-2xl mx-auto">
+          <div key={table.id} className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-2xl mx-auto">
             <div className="bg-gray-100 px-6 py-3 border-b-2 border-black relative rounded-t-lg">
               <button
                 onClick={() => {
@@ -538,7 +551,7 @@ export default function ToolsMaintenancePage() {
               <table className="w-full table-fixed">
                 <tbody>
                   {table.rows.slice(1).map((row, rowIndex) => (
-                    <tr key={row.id} className="bg-white border-b-2 border-black hover:bg-gray-50">
+                    <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
                       <td className="border-b-2 border-black p-2">
                         <textarea
                           value={row.text}

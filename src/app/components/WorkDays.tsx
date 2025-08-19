@@ -279,7 +279,7 @@ export default function WorkDays() {
            <div className="relative" ref={monthDropdownRef}>
              <button
                onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-               className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+               className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
              >
                <span>{HEBREW_MONTHS[selectedMonth]}</span>
                <svg 
@@ -311,7 +311,7 @@ export default function WorkDays() {
            <div className="relative" ref={yearDropdownRef}>
              <button
                onClick={() => setShowYearDropdown(!showYearDropdown)}
-               className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+               className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
              >
                <span>{selectedYear}</span>
                <svg 
@@ -342,7 +342,7 @@ export default function WorkDays() {
            {/* Add Row Button */}
            <button
              onClick={addRow}
-             className="bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
+             className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
            >
              הוסף שורה
            </button>
@@ -350,11 +350,11 @@ export default function WorkDays() {
        </div>
 
        {/* Table */}
-               <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
+               <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
             <thead>
-              <tr className="bg-white border-2 border-black">
+              <tr className="bg-white/90 border-2 border-black">
                 <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black w-[200px]">
                   מלל חופשי
                 </th>
@@ -366,7 +366,7 @@ export default function WorkDays() {
             </thead>
             <tbody>
               {workDaysData.rows.map((row, index) => (
-                <tr key={row.id} className="bg-white border-b-2 border-black hover:bg-gray-50">
+                <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
                   <td className="border-l-2 border-b-2 border-black p-2 w-[200px]">
                     <textarea
                       value={row.text}
@@ -406,7 +406,7 @@ export default function WorkDays() {
               ))}
               
               {/* Total Row */}
-              <tr className="bg-white border-2 border-black font-bold">
+              <tr className="bg-white/90 border-2 border-black font-bold">
                 <td className="px-6 py-3 text-right text-black border-t-2 border-black border-r-4 border-r-black w-[200px]">
                   סה״כ
                 </td>

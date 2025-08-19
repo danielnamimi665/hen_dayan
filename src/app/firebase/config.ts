@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getStorage } from 'firebase/storage';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 
 // Firebase configuration - תצטרך להחליף את הערכים שלך
 const firebaseConfig = {
@@ -20,5 +21,18 @@ export const storage = getStorage(app);
 
 // Initialize Firestore (לשמירת מטא-דאטה)
 export const db = getFirestore(app);
+
+// Initialize Auth and ensure anonymous sign-in on the client
+export const auth = getAuth(app);
+if (typeof window !== 'undefined') {
+	onAuthStateChanged(auth, (user) => {
+		if (!user) {
+			// Sign in anonymously so Storage/Firestore rules that require auth will allow access
+			signInAnonymously(auth).catch((err) => {
+				console.error('Firebase anonymous auth failed:', err);
+			});
+		}
+	});
+}
 
 export default app;

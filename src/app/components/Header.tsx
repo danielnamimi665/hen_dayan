@@ -14,10 +14,10 @@ export default function Header({ onLogout }: HeaderProps) {
         <div className="flex justify-between items-center h-16">
           {/* Right side - Company name */}
           <div className="text-right">
-            <h1 className="text-2xl font-bold text-black leading-tight">
+            <h1 className="text-2xl font-bold leading-tight text-white sm:text-black">
               חן דיין
             </h1>
-            <p className="text-sm text-black leading-tight">
+            <p className="text-sm leading-tight text-white sm:text-black">
               עבודות עפר ופיתוח
             </p>
           </div>

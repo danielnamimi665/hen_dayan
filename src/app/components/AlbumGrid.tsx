@@ -10,17 +10,22 @@ interface AlbumGridProps {
   isLoading: boolean
   loadErrors: string[]
   onDeleteInvoice: (invoice: InvoiceData) => void
+  openMobileGallerySignal?: number
 }
 
 export default function AlbumGrid({ 
   invoices, 
   isLoading, 
   loadErrors, 
-  onDeleteInvoice 
+  onDeleteInvoice,
+  openMobileGallerySignal = 0
 }: AlbumGridProps) {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null)
   const [showMobileGallery, setShowMobileGallery] = useState(false)
   const [forceUpdate, setForceUpdate] = useState(0)
+  const lastPressedAtRef = React.useRef(0)
+  const touchStartRef = React.useRef<{ x: number; y: number; t: number }>({ x: 0, y: 0, t: 0 })
+  const pointerStartRef = React.useRef<{ x: number; y: number; t: number }>({ x: 0, y: 0, t: 0 })
   
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
   
@@ -36,6 +41,62 @@ export default function AlbumGrid({
       }, 50)
     }
   }, [invoices, isMobile])
+
+  // Auto-open gallery on mobile after attach (signal from parent)
+  React.useEffect(() => {
+    if (!isMobile) return
+    if (openMobileGallerySignal > 0) {
+      console.log('AlbumGrid: auto-open mobile gallery signal received:', openMobileGallerySignal)
+      setShowMobileGallery(true)
+    }
+  }, [openMobileGallerySignal, isMobile])
+
+  // Single-press helper to avoid double-trigger on mobile (pointer + click)
+  const singlePress = (action: () => void) => (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const now = Date.now()
+    if (now - lastPressedAtRef.current < 300) return
+    lastPressedAtRef.current = now
+    action()
+  }
+
+  // Helpers: detect tap vs scroll on touch
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0]
+    touchStartRef.current = { x: t.clientX, y: t.clientY, t: Date.now() }
+  }
+  const handleTouchEndTap = (onTap: () => void) => (e: React.TouchEvent) => {
+    const t = e.changedTouches[0]
+    const dx = Math.abs(t.clientX - touchStartRef.current.x)
+    const dy = Math.abs(t.clientY - touchStartRef.current.y)
+    const dt = Date.now() - touchStartRef.current.t
+    if (dx < 10 && dy < 10 && dt < 500) {
+      e.preventDefault()
+      e.stopPropagation()
+      onTap()
+    }
+  }
+
+  // Pointer-based tap detection (works for touch/pen, mouse triggers immediately)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') return
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }
+  }
+  const handlePointerUpTap = (onTap: () => void) => (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') {
+      onTap();
+      return
+    }
+    const dx = Math.abs(e.clientX - pointerStartRef.current.x)
+    const dy = Math.abs(e.clientY - pointerStartRef.current.y)
+    const dt = Date.now() - pointerStartRef.current.t
+    if (dx < 10 && dy < 10 && dt < 500) {
+      e.preventDefault()
+      e.stopPropagation()
+      onTap()
+    }
+  }
 
   const handleDelete = (invoice: InvoiceData) => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק חשבונית זו?')) {
@@ -90,8 +151,11 @@ export default function AlbumGrid({
               <h3 className="text-lg font-semibold text-white">לצפייה באלבום החשבוניות</h3>
             </div>
             <div 
-              className="w-48 h-48 mx-auto bg-gray-100 relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-300"
-              onClick={() => setShowMobileGallery(true)}
+              className="w-48 h-48 mx-auto bg-white/80 relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-300"
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUpTap(() => setShowMobileGallery(true))}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEndTap(() => setShowMobileGallery(true))}
             >
               {invoices.length > 0 ? (
                 <Image
@@ -110,23 +174,25 @@ export default function AlbumGrid({
                   📁
                 </div>
               )}
-              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-2 text-sm">
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-center py-2 text-sm">
                 {invoices.length} חשבוניות
               </div>
             </div>
           </div>
         </div>
       ) : (
-        /* Desktop view - grid layout */
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-          {invoices.map((invoice) => (
-            <AlbumCard
-              key={invoice.id}
-              invoice={invoice}
-              onDelete={() => handleDelete(invoice)}
-              onView={() => setSelectedInvoice(invoice)}
-            />
-          ))}
+        /* Desktop view - grid with scroll so you can show many images */
+        <div className="max-h-[80vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+            {invoices.map((invoice) => (
+              <AlbumCard
+                key={invoice.id}
+                invoice={invoice}
+                onDelete={() => handleDelete(invoice)}
+                onView={() => setSelectedInvoice(invoice)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
@@ -154,7 +220,9 @@ export default function AlbumGrid({
                       {new Date(invoice.createdAt).toLocaleDateString('he-IL')}
                     </span>
                     <button
-                      onClick={() => handleDelete(invoice)}
+                      onClick={singlePress(() => handleDelete(invoice))}
+                      onTouchStart={handleTouchStart}
+                      onTouchEnd={handleTouchEndTap(() => handleDelete(invoice))}
                       className="text-red-600 hover:text-red-800 text-lg font-bold"
                     >
                       ×
@@ -162,13 +230,15 @@ export default function AlbumGrid({
                   </div>
                   
                   <div className="text-center">
-                                       <Image
+                   <Image
                      src={invoice.downloadURL}
                      alt={invoice.name}
                      width={400}
                      height={300}
                      className="w-full max-w-md mx-auto rounded-lg shadow-md cursor-pointer hover:scale-105 transition-transform"
-                     onClick={() => setSelectedInvoice(invoice)}
+                     onClick={singlePress(() => setSelectedInvoice(invoice))}
+                     onTouchStart={handleTouchStart}
+                     onTouchEnd={handleTouchEndTap(() => setSelectedInvoice(invoice))}
                      onError={() => {
                        console.error('Error loading image in gallery:', invoice.name)
                      }}
@@ -187,8 +257,12 @@ export default function AlbumGrid({
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="relative max-w-4xl max-h-full">
             <button
-              onClick={() => setSelectedInvoice(null)}
-              className="absolute top-4 right-4 text-white text-4xl font-bold hover:text-gray-300 z-10"
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUpTap(() => setSelectedInvoice(null))}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEndTap(() => setSelectedInvoice(null))}
+              aria-label="Close"
+              className="absolute top-3 right-3 bg-white bg-opacity-80 text-black rounded-full w-8 h-8 flex items-center justify-center shadow hover:bg-opacity-100 z-10"
             >
               ×
             </button>

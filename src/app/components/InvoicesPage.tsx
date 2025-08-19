@@ -31,6 +31,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceData[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [loadErrors, setLoadErrors] = useState<string[]>([])
+  const [openMobileGallerySignal, setOpenMobileGallerySignal] = useState(0)
 
   const monthDropdownRef = useRef<HTMLDivElement>(null)
   const yearDropdownRef = useRef<HTMLDivElement>(null)
@@ -154,8 +155,16 @@ export default function InvoicesPage() {
             console.log('Firebase is ready, uploading to Firebase...')
             // Try Firebase first
             const invoiceData = await FirebaseStorageService.uploadImage(file, month, year)
-            console.log('Invoice uploaded successfully to Firebase:', invoiceData.name)
-            console.log('Firebase invoice data:', invoiceData)
+            console.log('[Attach] Uploaded to Firebase:', {
+              id: invoiceData.id,
+              name: invoiceData.name,
+              month: invoiceData.month,
+              year: invoiceData.year,
+              size: invoiceData.size,
+              width: invoiceData.width,
+              height: invoiceData.height,
+              previewLength: (invoiceData.downloadURL || '').length
+            })
             
             // Update the invoices state immediately for better UX
             setInvoices(prev => {
@@ -166,7 +175,7 @@ export default function InvoicesPage() {
               const exists = prev.some(inv => inv.id === invoiceData.id)
               if (!exists) {
                 const newInvoices = [...prev, invoiceData]
-                console.log('New invoices count:', newInvoices.length)
+                console.log('[Attach] New invoices count:', newInvoices.length)
                 console.log('New invoices:', newInvoices.map(inv => ({ id: inv.id, month: inv.month, year: inv.year })))
                 return newInvoices
               }
@@ -176,6 +185,7 @@ export default function InvoicesPage() {
             // Force re-render for mobile
             setTimeout(() => {
               setInvoices(current => [...current])
+              setOpenMobileGallerySignal(prev => prev + 1)
             }, 100)
           } else {
             console.log('Firebase not configured, using IndexedDB fallback...')
@@ -219,7 +229,7 @@ export default function InvoicesPage() {
                 downloadURL: invoiceData.blob ? URL.createObjectURL(invoiceData.blob) : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
               }
             
-            console.log('Fallback invoice created:', fallbackInvoice)
+            console.log('[Attach] Fallback invoice created (IndexedDB):', { id: fallbackInvoice.id, month: fallbackInvoice.month, year: fallbackInvoice.year, previewLength: (fallbackInvoice.downloadURL || '').length })
             
             // Update the invoices state immediately for better UX
             setInvoices(prev => {
@@ -240,6 +250,7 @@ export default function InvoicesPage() {
             // Force re-render for mobile
             setTimeout(() => {
               setInvoices(current => [...current])
+              setOpenMobileGallerySignal(prev => prev + 1)
             }, 100)
           } else {
             throw new Error(`שגיאה בשמירת החשבונית: ${invoiceData.name}`)
@@ -270,31 +281,29 @@ export default function InvoicesPage() {
     }
   }, [loadInvoices, selectedMonth, selectedYear])
 
-  // Handle invoice deletion from Firebase (with IndexedDB fallback)
+  // Handle invoice deletion: always try Firebase (Firestore + Storage if exists), then fallback to IndexedDB
   const handleDeleteInvoice = useCallback(async (invoice: InvoiceData) => {
     try {
-      if (invoice.storagePath && invoice.storagePath !== '') {
-        // Try Firebase first
-        const success = await FirebaseStorageService.deleteInvoice(invoice)
-        if (success) {
-          setInvoices(prev => prev.filter(inv => inv.id !== invoice.id))
-          console.log('Invoice deleted successfully from Firebase:', invoice.name)
-        } else {
-          console.error('Failed to delete invoice from Firebase:', invoice.name)
-        }
+      console.log('[Delete] Request to delete:', { id: invoice.id, name: invoice.name, storagePath: invoice.storagePath })
+      // Try Firebase first (deletes Firestore doc and Storage if storagePath exists)
+      const firebaseDeleted = await FirebaseStorageService.deleteInvoice(invoice)
+      if (firebaseDeleted) {
+        setInvoices(prev => prev.filter(inv => inv.id !== invoice.id))
+        console.log('[Delete] Removed from UI after Firebase deletion:', invoice.id)
+        return
+      }
+
+      // Fallback to IndexedDB (local only)
+      const { InvoicesDB } = await import('../services/db')
+      const indexedDeleted = await InvoicesDB.deleteInvoice(invoice.id)
+      if (indexedDeleted) {
+        setInvoices(prev => prev.filter(inv => inv.id !== invoice.id))
+        console.log('[Delete] Removed from UI after IndexedDB deletion:', invoice.id)
       } else {
-        // Fallback to IndexedDB for local invoices
-        const { InvoicesDB } = await import('../services/db')
-        const success = await InvoicesDB.deleteInvoice(invoice.id)
-        if (success) {
-          setInvoices(prev => prev.filter(inv => inv.id !== invoice.id))
-          console.log('Invoice deleted successfully from IndexedDB:', invoice.name)
-        } else {
-          console.error('Failed to delete invoice from IndexedDB:', invoice.name)
-        }
+        console.error('[Delete] Failed to delete invoice from both Firebase and IndexedDB:', invoice.id)
       }
     } catch (error) {
-      console.error('Error deleting invoice:', error)
+      console.error('[Delete] Error deleting invoice:', error)
     }
   }, [])
 
@@ -363,7 +372,7 @@ export default function InvoicesPage() {
       <div className="mb-8">
                  {/* Category title with styled rectangle */}
          <div className="mb-4 flex justify-center">
-           <div className="bg-white border-2 border-black rounded-3xl px-8 py-4 shadow-lg">
+           <div className="bg-white/90 border-2 border-black rounded-3xl px-8 py-4 shadow-lg">
              <h1 className="text-4xl font-bold text-black text-center lg:text-4xl lg:mb-0 text-3xl mb-0">חשבוניות</h1>
            </div>
          </div>
@@ -374,7 +383,8 @@ export default function InvoicesPage() {
           <div className="relative" ref={monthDropdownRef}>
             <button
               onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              onTouchEnd={(e) => { e.preventDefault(); setShowMonthDropdown(!showMonthDropdown) }}
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{HEBREW_MONTHS[selectedMonth - 1]}</span>
               <svg 
@@ -393,6 +403,7 @@ export default function InvoicesPage() {
                   <button
                     key={index}
                     onClick={() => handleMonthSelect(index + 1)}
+                    onTouchEnd={(e) => { e.preventDefault(); handleMonthSelect(index + 1) }}
                     className="w-full text-right px-4 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 text-black text-sm"
                   >
                     {month}
@@ -406,7 +417,8 @@ export default function InvoicesPage() {
           <div className="relative" ref={yearDropdownRef}>
             <button
               onClick={() => setShowYearDropdown(!showYearDropdown)}
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
+              onTouchEnd={(e) => { e.preventDefault(); setShowYearDropdown(!showYearDropdown) }}
+              className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm border-2 border-black"
             >
               <span>{selectedYear}</span>
               <svg 
@@ -425,6 +437,7 @@ export default function InvoicesPage() {
                   <button
                     key={year}
                     onClick={() => handleYearSelect(year)}
+                    onTouchEnd={(e) => { e.preventDefault(); handleYearSelect(year) }}
                     className="w-full text-right px-4 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 text-black text-sm"
                   >
                     {year}
@@ -452,6 +465,7 @@ export default function InvoicesPage() {
           isLoading={isLoading}
           loadErrors={loadErrors}
           onDeleteInvoice={handleDeleteInvoice}
+          openMobileGallerySignal={openMobileGallerySignal}
         />
       </div>
     </div>

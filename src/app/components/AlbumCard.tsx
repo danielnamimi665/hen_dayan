@@ -29,7 +29,7 @@ export default function AlbumCard({ invoice, onView, onDelete }: AlbumCardProps)
     return `${day} ב${month} ${year}, ${hours}:${minutes}`
   }
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleImageError = () => {
     console.error('Error loading image in AlbumCard:', invoice.name, invoice.id)
     console.error('Firebase info:', {
       size: invoice.size,
@@ -37,22 +37,25 @@ export default function AlbumCard({ invoice, onView, onDelete }: AlbumCardProps)
       downloadURL: invoice.downloadURL
     })
     setImageError(true)
-    e.currentTarget.src = '/henlogo.png' // Fallback image
   }
 
   const imageUrl = imageError ? '/henlogo.png' : invoice.downloadURL
 
   return (
-    <div className="bg-white border-2 border-black rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="bg-white/90 border-2 border-black rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
       {/* Smaller image container */}
-      <div className="w-24 h-24 mx-auto bg-gray-100 relative cursor-pointer rounded-lg" onClick={onView}>
+      <div
+        className="w-24 h-24 mx-auto bg-gray-100 relative cursor-pointer rounded-lg"
+        onClick={onView}
+        onTouchEnd={(e) => { e.preventDefault(); onView(); }}
+      >
         <Image
           src={imageUrl}
           alt={invoice.name}
           width={96}
           height={96}
           className="w-full h-full object-cover hover:scale-105 transition-transform"
-          onError={() => handleImageError}
+          onError={handleImageError}
         />
         {imageError && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-lg">

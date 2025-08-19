@@ -33,6 +33,7 @@ import {
   limit
 } from 'firebase/firestore';
 import { storage, db } from '../firebase/config';
+import { ImageProcessor } from './imageUtils';
 
 import { FirebaseInvoice } from '../types/invoice'
 
@@ -75,7 +76,25 @@ export class FirebaseStorageService {
     }
   }
 
-  // Upload image to Firebase Storage
+  // Helper: convert Blob to Base64 (without data URL prefix)
+  private static blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result;
+        if (typeof result === 'string') {
+          const base64 = result.split(',')[1] || '';
+          resolve(base64);
+        } else {
+          reject(new Error('Failed converting blob to base64'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed reading blob'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Upload image by saving image data directly in Firestore (as base64) and metadata alongside
   static async uploadImage(
     file: File, 
     month: number, 
@@ -83,50 +102,53 @@ export class FirebaseStorageService {
   ): Promise<FirebaseInvoice> {
     try {
       console.log(`Starting upload for file: ${file.name}, month: ${month}, year: ${year}`);
-      
-      // Create unique filename with more randomness to avoid conflicts
+
+      // Process image (resize/compress) before storing to Firestore to fit document limits
+      const processed = await ImageProcessor.processImage(file);
+      console.log('[Firebase] Processed image details:', {
+        name: file.name,
+        originalSizeBytes: file.size,
+        processedSizeBytes: processed.size,
+        width: processed.width,
+        height: processed.height,
+        month,
+        year
+      });
+      const base64 = await this.blobToBase64(processed.blob);
+      console.log('[Firebase] Base64 length:', base64.length);
+      const dataUrl = `data:image/jpeg;base64,${base64}`;
+
+      // Create invoice metadata
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 15);
-      const filename = `${year}-${month}-${timestamp}-${randomSuffix}-${file.name}`;
-      const storagePath = `invoices/${year}/${month}/${filename}`;
-      
-      console.log(`Storage path: ${storagePath}`);
-      
-      // Upload to Firebase Storage
-      const storageRef = ref(storage, storagePath);
-      console.log('Uploading to Firebase Storage...');
-      const snapshot = await uploadBytes(storageRef, file);
-      console.log('Upload completed, getting download URL...');
-      
-      // Get download URL
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      console.log('Download URL obtained:', downloadURL);
-      
-      // Create invoice object with unique ID
       const invoice: FirebaseInvoice = {
-        id: `${timestamp}-${randomSuffix}`, // More unique ID
+        id: `${timestamp}-${randomSuffix}`,
         name: file.name,
         createdAt: new Date().toISOString(),
-        type: file.type,
-        size: file.size,
-        width: 0, // Will be updated after processing
-        height: 0, // Will be updated after processing
+        type: 'image/jpeg',
+        size: processed.size,
+        width: processed.width,
+        height: processed.height,
         month,
         year,
-        storagePath,
-        downloadURL
+        storagePath: '',
+        downloadURL: dataUrl
       };
 
-      console.log('Saving metadata to Firestore...');
-      // Save metadata to Firestore
-      const docRef = await addDoc(collection(db, 'invoices'), invoice);
+      console.log('[Firebase] Saving image data + metadata to Firestore...');
+      // Save metadata + image data to Firestore
+      const docRef = await addDoc(collection(db, 'invoices'), {
+        ...invoice,
+        imageData: base64 // store raw base64 to reduce Firestore doc size slightly
+      });
       invoice.id = docRef.id; // Use Firestore document ID as final ID
-      console.log('Metadata saved to Firestore with ID:', docRef.id);
+      console.log('[Firebase] Saved to Firestore with ID:', docRef.id);
+      console.table([{ id: docRef.id, name: invoice.name, month: invoice.month, year: invoice.year, sizeBytes: invoice.size }]);
 
-      console.log('Image uploaded successfully:', filename);
+      console.log('[Firebase] Image uploaded successfully to Firestore document. Preview URL length:', (invoice.downloadURL || '').length);
       return invoice;
     } catch (error) {
-      console.error('Error uploading image to Firebase:', error);
+      console.error('Error uploading image to Firebase (Firestore path):', error);
       throw error;
     }
   }
@@ -139,45 +161,75 @@ export class FirebaseStorageService {
     try {
       console.log(`Fetching invoices for month: ${month}, year: ${year}`);
       
-      const q = query(
+      // Preferred query (requires composite index: month asc, year asc, createdAt desc)
+      const indexedQuery = query(
         collection(db, 'invoices'),
         where('month', '==', month),
         where('year', '==', year),
         orderBy('createdAt', 'desc')
       );
-      
-      const querySnapshot = await getDocs(q);
-      const invoices: FirebaseInvoice[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log('Found invoice:', data);
-        invoices.push({ ...data, id: doc.id } as FirebaseInvoice);
+      const indexedSnapshot = await getDocs(indexedQuery);
+      const indexedInvoices: FirebaseInvoice[] = [];
+      indexedSnapshot.forEach((docSnap) => {
+        const data = docSnap.data() as Record<string, unknown>;
+        const imageData = typeof data.imageData === 'string' ? data.imageData : undefined;
+        const downloadURL = imageData ? `data:image/jpeg;base64,${imageData}` : (data.downloadURL as string | undefined) || '';
+        indexedInvoices.push({ ...(data as object), id: docSnap.id, downloadURL } as FirebaseInvoice);
       });
-      
-      console.log(`Retrieved ${invoices.length} invoices from Firebase for ${month}/${year}`);
+      console.log(`Retrieved ${indexedInvoices.length} invoices from Firebase for ${month}/${year} (indexed)`);
+      return indexedInvoices;
+    } catch (error: unknown) {
+      // If index is missing, Firestore throws failed-precondition with a link to create the index.
+      const message = error instanceof Error ? error.message : String(error);
+      const code = (error as { code?: string } | undefined)?.code;
+      const isIndexMissing = message.includes('requires an index') || code === 'failed-precondition';
+      if (!isIndexMissing) {
+        console.error('Error getting invoices from Firebase:', error);
+        throw error;
+      }
+
+      console.warn('Firestore composite index missing. Falling back to non-indexed query and client-side sort.');
+      // Fallback query without orderBy (no composite index required)
+      const fallbackQuery = query(
+        collection(db, 'invoices'),
+        where('month', '==', month),
+        where('year', '==', year)
+      );
+      const fallbackSnapshot = await getDocs(fallbackQuery);
+      const invoices: FirebaseInvoice[] = [];
+      fallbackSnapshot.forEach((docSnap) => {
+        const data = docSnap.data() as Record<string, unknown>;
+        const imageData = typeof data.imageData === 'string' ? data.imageData : undefined;
+        const downloadURL = imageData ? `data:image/jpeg;base64,${imageData}` : (data.downloadURL as string | undefined) || '';
+        invoices.push({ ...(data as object), id: docSnap.id, downloadURL } as FirebaseInvoice);
+      });
+      // Client-side sort by createdAt desc
+      invoices.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+      console.log(`Retrieved ${invoices.length} invoices from Firebase for ${month}/${year} (fallback, client-sorted)`);
       return invoices;
-    } catch (error) {
-      console.error('Error getting invoices from Firebase:', error);
-      // Don't return empty array, let the error propagate to trigger fallback
-      throw error;
     }
   }
 
-  // Delete invoice from Firebase
+  // Delete invoice from Firebase (Firestore doc always; Storage object only if path present)
   static async deleteInvoice(invoice: FirebaseInvoice): Promise<boolean> {
     try {
-      // Delete from Storage
-      const storageRef = ref(storage, invoice.storagePath);
-      await deleteObject(storageRef);
-      
-      // Delete from Firestore
+      console.log('[Delete] Starting delete for:', { id: invoice.id, name: invoice.name, storagePath: invoice.storagePath });
+      // Delete Storage object only when storagePath exists
+      if (invoice.storagePath && invoice.storagePath.trim() !== '') {
+        try {
+          const storageRef = ref(storage, invoice.storagePath);
+          await deleteObject(storageRef);
+          console.log('[Delete] Storage object deleted:', invoice.storagePath);
+        } catch (storageErr) {
+          console.warn('[Delete] Storage delete failed (continuing with Firestore doc delete):', storageErr);
+        }
+      }
+      // Delete Firestore document
       await deleteDoc(doc(db, 'invoices', invoice.id));
-      
-      console.log('Invoice deleted successfully:', invoice.name);
+      console.log('[Delete] Firestore document deleted:', invoice.id);
       return true;
     } catch (error) {
-      console.error('Error deleting invoice:', error);
+      console.error('[Delete] Error deleting invoice from Firebase:', error);
       return false;
     }
   }

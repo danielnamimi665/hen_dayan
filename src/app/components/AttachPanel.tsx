@@ -17,6 +17,7 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
+  const lastPressRef = useRef<number>(0)
 
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
@@ -122,9 +123,19 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
     }
   }
 
+  // Single-tap helper to avoid double-fire on mobile (touch + click)
+  const singlePress = (action: () => void) => (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const now = Date.now()
+    if (now - lastPressRef.current < 300) return
+    lastPressRef.current = now
+    action()
+  }
+
   return (
     <div className="flex justify-center mb-6">
-      <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-black max-w-md w-full">
+      <div className="bg-white/90 rounded-2xl shadow-lg p-6 border-2 border-black max-w-md w-full">
         <h2 className="text-2xl font-bold text-black mb-4 text-center">צרף חשבונית</h2>
         
         {/* Selected Month/Year Display */}
@@ -145,13 +156,15 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
         {isMobile && (
           <div className="flex flex-col gap-3 mb-4">
             <button
-              onClick={() => cameraInputRef.current?.click()}
+              onClick={singlePress(() => cameraInputRef.current?.click())}
+              onTouchEnd={singlePress(() => cameraInputRef.current?.click())}
               className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors"
             >
               📸 צילום תמונה
             </button>
             <button
-              onClick={() => galleryInputRef.current?.click()}
+              onClick={singlePress(() => galleryInputRef.current?.click())}
+              onTouchEnd={singlePress(() => galleryInputRef.current?.click())}
               className="bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
             >
               🖼️ בחירה מהגלריה
@@ -206,7 +219,8 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
                 <div key={index} className="flex items-center justify-between bg-gray-100 p-3 rounded-xl">
                   <span className="text-black text-sm truncate">{file.name}</span>
                   <button
-                    onClick={() => removeFile(index)}
+                    onClick={singlePress(() => removeFile(index))}
+                    onTouchEnd={singlePress(() => removeFile(index))}
                     className="text-red-600 hover:text-red-800 text-lg font-bold flex-shrink-0"
                   >
                     ×
@@ -219,7 +233,8 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
         
         {/* Attach Button */}
         <button
-          onClick={handleAttach}
+          onClick={singlePress(handleAttach)}
+          onTouchEnd={singlePress(handleAttach)}
           disabled={selectedFiles.length === 0 || isProcessing}
           className="bg-orange-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full"
         >
