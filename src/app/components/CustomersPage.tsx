@@ -383,7 +383,7 @@ export default function CustomersPage() {
          </div>
         
         {/* Controls */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="flex flex-col items-center gap-4 mb-6 sm:flex-row sm:justify-center">
           {/* Month Dropdown */}
           <div className="relative" ref={monthDropdownRef}>
             <button
@@ -451,14 +451,24 @@ export default function CustomersPage() {
           {/* Add Row Button */}
           <button
             onClick={addRow}
-            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
+            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium w-full max-w-xs sm:w-auto"
           >
             הוסף שורה
           </button>
-          {/* Manual Save Button */}
+          {/* Manual Save Button on desktop/tablet inline; on mobile it will also show below as full width */}
           <button
             onClick={handleManualSave}
-            className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
+            className="hidden sm:inline-flex bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
+          >
+            שמור
+          </button>
+        </div>
+
+        {/* Mobile-only full-width Save button under the three controls */}
+        <div className="sm:hidden flex justify-center mb-6">
+          <button
+            onClick={handleManualSave}
+            className="w-[90%] bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
           >
             שמור
           </button>

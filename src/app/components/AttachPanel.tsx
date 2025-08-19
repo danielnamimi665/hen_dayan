@@ -158,7 +158,7 @@ export default function AttachPanel({ onAttach, selectedMonth, selectedYear }: A
               onTouchEnd={singlePress(() => galleryInputRef.current?.click())}
               className="bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
             >
-              🖼️ בחירה מהגלריה
+              🖼️ ספריית התמונות
             </button>
           </div>
         )}
