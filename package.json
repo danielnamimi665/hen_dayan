@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "icons": "node scripts/generate-icons.mjs",
+    "build": "npm run icons && next build",
     "start": "next start",
     "lint": "next lint"
   },
