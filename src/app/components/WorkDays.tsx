@@ -48,10 +48,10 @@ export default function WorkDays() {
     try {
       const cloud = await FirestoreDataService.load<WorkDaysData>('workdays', `${year}-${String(monthKey).padStart(2, '0')}`)
       if (cloud && cloud.rows && Array.isArray(cloud.rows) && cloud.rows.length >= 2) {
-        // Ensure all rows have date field
-        const rowsWithDate = cloud.rows.map(row => ({
+        // Ensure all rows have date field using any to avoid type issues
+        const rowsWithDate = (cloud.rows as any[]).map((row: any) => ({
           ...row,
-          date: row.date || ''
+          date: row.date ?? ''
         }))
         setWorkDaysData({ ...cloud, rows: rowsWithDate })
         console.log(`[Cloud] Loaded workdays ${monthKey}/${year}:`, cloud.rows.length, 'rows')
@@ -67,10 +67,10 @@ export default function WorkDays() {
         const data = JSON.parse(saved)
         // Ensure data has the correct structure
         if (data && data.rows && Array.isArray(data.rows) && data.rows.length >= 2) {
-          // Ensure all rows have date field
-          const rowsWithDate = data.rows.map(row => ({
+          // Ensure all rows have date field using any to avoid type issues
+          const rowsWithDate = (data.rows as any[]).map((row: any) => ({
             ...row,
-            date: row.date || ''
+            date: row.date ?? ''
           }))
           setWorkDaysData({ ...data, rows: rowsWithDate })
           console.log(`Loaded workdays data for ${monthKey}/${year}:`, data.rows.length, 'rows')
