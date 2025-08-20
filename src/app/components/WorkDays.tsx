@@ -304,11 +304,9 @@ export default function WorkDays() {
     <div className="min-h-screen bg-transparent p-4 rtl">
       {/* Header */}
       <div className="mb-8">
-                 {/* Category title with styled rectangle */}
+                 {/* Category title without styled rectangle */}
          <div className="mb-4 flex justify-center">
-           <div className="bg-white border-2 border-black rounded-3xl px-8 py-4 shadow-lg">
-             <h1 className="text-4xl font-bold text-black text-center lg:text-4xl lg:mb-0 text-3xl mb-0">ימי עבודה</h1>
-           </div>
+           <h1 className="text-4xl font-bold text-white text-center lg:text-4xl lg:mb-0 text-3xl mb-0 drop-shadow-lg">ימי עבודה</h1>
          </div>
         
         {/* Controls */}
@@ -382,7 +380,7 @@ export default function WorkDays() {
              onClick={addRow}
              className="bg-white/90 text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black transition-colors font-medium"
            >
-             הוסף שורה
+             הוסף
            </button>
          </div>
        </div>
@@ -397,9 +395,9 @@ export default function WorkDays() {
                   מלל חופשי
                 </th>
                 <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black border-r-2 border-r-black w-[100px]">
-                  <span className="whitespace-nowrap">עלות יום עבודה</span>
+                  <span className="whitespace-nowrap">עלות</span>
                 </th>
-                <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black border-r-4 border-r-black w-[120px]">
+                <th className="px-6 py-3 text-center font-bold text-black border-b-2 border-black border-r-4 border-r-black w-[120px]">
                   תאריך
                 </th>
                 <th className="px-4 py-3 w-16 border-b-2 border-black"></th>

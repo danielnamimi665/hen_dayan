@@ -56,13 +56,13 @@ export default function MainPage({ onLogout }: MainPageProps) {
           />
         </>
       ) : (
-        <div className="bg-white/95 backdrop-blur-sm min-h-screen">
+        <div className="min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {/* Back button */}
             <div className="mb-6">
               <button
                 onClick={handleBackToCategories}
-                className="flex items-center space-x-2 space-x-reverse px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-2 space-x-reverse px-4 py-2 bg-white/90 hover:bg-white rounded-lg transition-colors duration-200 shadow-lg border-2 border-black"
               >
                 <span className="text-lg">←</span>
                 <span className="font-medium">חזור לקטגוריות</span>

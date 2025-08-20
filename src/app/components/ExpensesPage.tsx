@@ -296,7 +296,7 @@ export default function ExpensesPage() {
             onClick={handleAddRow}
             className="bg-white/90 text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm border-2 border-black"
           >
-            הוסף שורה
+            הוסף
           </button>
         </div>
       </div>
