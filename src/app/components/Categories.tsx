@@ -36,31 +36,47 @@ export default function Categories({ categories, selectedCategory, onSelectCateg
             ))}
           </div>
 
-          {/* Mobile: Horizontal scrollable categories */}
-          <div className="lg:hidden overflow-x-auto scrollbar-hide">
-            <div className="flex space-x-6 space-x-reverse min-w-max py-4 px-2">
+          {/* Mobile: Grid layout for categories as squares */}
+          <div className="lg:hidden">
+            <div className="grid grid-cols-2 gap-4 py-6 px-4">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => onSelectCategory(category)}
                   className={`
-                    py-2 px-4 text-sm font-bold whitespace-nowrap rounded-lg transition-colors duration-200
+                    aspect-square bg-white/90 backdrop-blur-sm rounded-xl shadow-lg
+                    flex flex-col items-center justify-center p-4
+                    transition-all duration-200 transform hover:scale-105
                     ${selectedCategory === category
-                      ? 'bg-white text-black border-2 border-black'
-                      : 'text-black hover:text-black hover:bg-white hover:text-black'
+                      ? 'ring-4 ring-black bg-white'
+                      : 'hover:bg-white'
                     }
                     focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
                   `}
                   aria-current={selectedCategory === category ? 'page' : undefined}
                 >
-                  {category}
+                  <div className={`
+                    w-12 h-12 rounded-lg mb-3 flex items-center justify-center
+                    ${selectedCategory === category
+                      ? 'bg-black text-white'
+                      : 'bg-gray-200 text-gray-700'
+                    }
+                  `}>
+                    {/* Icon placeholder - you can add specific icons for each category */}
+                    <span className="text-xl">📋</span>
+                  </div>
+                  <span className={`
+                    text-sm font-bold text-center leading-tight
+                    ${selectedCategory === category
+                      ? 'text-black'
+                      : 'text-gray-800'
+                    }
+                  `}>
+                    {category}
+                  </span>
                 </button>
               ))}
             </div>
-            
-            {/* Scroll indicators */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-transparent pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-transparent to-transparent pointer-events-none" />
           </div>
         </div>
       </div>

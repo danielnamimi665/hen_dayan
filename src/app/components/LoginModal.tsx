@@ -11,10 +11,17 @@ export default function LoginModal({ onClose, onLoginSuccess }: LoginModalProps)
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isFirstTime, setIsFirstTime] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const CORRECT_PASSWORD = '123456'
+  // בדיקה אם זו הפעם הראשונה או שיש כבר סיסמה שמורה
+  useEffect(() => {
+    const savedPassword = localStorage.getItem('henDayanPassword')
+    if (!savedPassword) {
+      setIsFirstTime(true)
+    }
+  }, [])
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -51,13 +58,29 @@ export default function LoginModal({ onClose, onLoginSuccess }: LoginModalProps)
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500))
 
-    if (password === CORRECT_PASSWORD) {
-      onLoginSuccess()
+    if (isFirstTime) {
+      // בפעם הראשונה - שמור את הסיסמה כסיסמה הקבועה
+      if (password.length >= 4) {
+        localStorage.setItem('henDayanPassword', password)
+        onLoginSuccess()
+      } else {
+        setError('הסיסמה חייבת להיות לפחות 4 תווים')
+        setPassword('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
+      }
     } else {
-      setError('סיסמה שגויה. נסה שוב.')
-      setPassword('')
-      if (inputRef.current) {
-        inputRef.current.focus()
+      // בדוק מול הסיסמה השמורה
+      const savedPassword = localStorage.getItem('henDayanPassword')
+      if (password === savedPassword) {
+        onLoginSuccess()
+      } else {
+        setError('סיסמה שגויה. נסה שוב.')
+        setPassword('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
       }
     }
     
@@ -75,17 +98,20 @@ export default function LoginModal({ onClose, onLoginSuccess }: LoginModalProps)
       >
         <div className="text-center mb-6">
           <h2 id="login-title" className="text-xl font-bold text-gray-900 mb-2">
-            כניסה למערכת
+            {isFirstTime ? 'הגדרת סיסמה ראשונית' : 'כניסה למערכת'}
           </h2>
           <p id="login-description" className="text-sm text-gray-600">
-            הזן סיסמה כדי להיכנס
+            {isFirstTime 
+              ? 'הזן סיסמה חדשה למערכת (לפחות 4 תווים)'
+              : 'הזן סיסמה כדי להיכנס'
+            }
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              סיסמה
+              {isFirstTime ? 'סיסמה חדשה' : 'סיסמה'}
             </label>
             <input
               ref={inputRef}
@@ -94,9 +120,10 @@ export default function LoginModal({ onClose, onLoginSuccess }: LoginModalProps)
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="הזן סיסמה"
+              placeholder={isFirstTime ? 'הזן סיסמה חדשה' : 'הזן סיסמה'}
               required
               disabled={isLoading}
+              minLength={4}
             />
           </div>
 
@@ -118,9 +145,9 @@ export default function LoginModal({ onClose, onLoginSuccess }: LoginModalProps)
             <button
               type="submit"
               className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              disabled={isLoading || !password}
+              disabled={isLoading || !password || (isFirstTime && password.length < 4)}
             >
-              {isLoading ? 'מתחבר...' : 'כניסה'}
+              {isLoading ? 'מתחבר...' : (isFirstTime ? 'שמירת סיסמה' : 'כניסה')}
             </button>
           </div>
         </form>
