@@ -7,6 +7,7 @@ interface WorkDayRow {
   id: string
   text: string
   cost: string
+  date: string
 }
 
 interface WorkDaysData {
@@ -25,8 +26,8 @@ export default function WorkDays() {
   const [showYearDropdown, setShowYearDropdown] = useState(false)
   const [workDaysData, setWorkDaysData] = useState<WorkDaysData>({
     rows: [
-      { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' },
-      { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' }
+      { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' },
+      { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' }
     ]
   })
 
@@ -47,7 +48,12 @@ export default function WorkDays() {
     try {
       const cloud = await FirestoreDataService.load<WorkDaysData>('workdays', `${year}-${String(monthKey).padStart(2, '0')}`)
       if (cloud && cloud.rows && Array.isArray(cloud.rows) && cloud.rows.length >= 2) {
-        setWorkDaysData(cloud)
+        // Ensure all rows have date field
+        const rowsWithDate = cloud.rows.map(row => ({
+          ...row,
+          date: row.date || ''
+        }))
+        setWorkDaysData({ ...cloud, rows: rowsWithDate })
         console.log(`[Cloud] Loaded workdays ${monthKey}/${year}:`, cloud.rows.length, 'rows')
         return
       }
@@ -61,14 +67,19 @@ export default function WorkDays() {
         const data = JSON.parse(saved)
         // Ensure data has the correct structure
         if (data && data.rows && Array.isArray(data.rows) && data.rows.length >= 2) {
-          setWorkDaysData(data)
+          // Ensure all rows have date field
+          const rowsWithDate = data.rows.map(row => ({
+            ...row,
+            date: row.date || ''
+          }))
+          setWorkDaysData({ ...data, rows: rowsWithDate })
           console.log(`Loaded workdays data for ${monthKey}/${year}:`, data.rows.length, 'rows')
         } else {
                    // Reset to default if data is invalid
          const defaultData = {
            rows: [
-             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' },
-             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' }
+             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' },
+             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' }
            ]
          }
           setWorkDaysData(defaultData)
@@ -79,8 +90,8 @@ export default function WorkDays() {
                  // Reset to default on error
          const defaultData = {
            rows: [
-             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' },
-             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' }
+             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' },
+             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' }
            ]
          }
         setWorkDaysData(defaultData)
@@ -90,8 +101,8 @@ export default function WorkDays() {
              // Default data for new month/year - don't save automatically
        const defaultData = {
          rows: [
-           { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' },
-           { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' }
+           { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' },
+             { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' }
          ]
        }
       setWorkDaysData(defaultData)
@@ -131,7 +142,8 @@ export default function WorkDays() {
     const newRow: WorkDayRow = {
       id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       text: '',
-      cost: ''
+      cost: '',
+      date: ''
     }
     const newData = {
       ...workDaysData,
@@ -156,7 +168,7 @@ export default function WorkDays() {
   }
 
   // Update row data
-  const updateRow = (id: string, field: 'text' | 'cost', value: string) => {
+  const updateRow = (id: string, field: 'text' | 'cost' | 'date', value: string) => {
     const newData = {
       ...workDaysData,
       rows: workDaysData.rows.map(row => 
@@ -199,6 +211,15 @@ export default function WorkDays() {
     saveData(newData, selectedYear, selectedMonth);
   };
 
+  const handleDateChange = (index: number, value: string) => {
+    const newRows = [...workDaysData.rows];
+    newRows[index] = { ...newRows[index], date: value };
+    const newData = { ...workDaysData, rows: newRows };
+    setWorkDaysData(newData);
+    // Save immediately after any change - only for current month/year
+    saveData(newData, selectedYear, selectedMonth);
+  };
+
   // Handle month selection
   const handleMonthSelect = (month: number) => {
     setSelectedMonth(month)
@@ -206,8 +227,8 @@ export default function WorkDays() {
          // Clear current data before loading new month data
      setWorkDaysData({
        rows: [
-         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' },
-         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' }
+         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' },
+         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' }
        ]
      })
     // Load data for the new month
@@ -221,8 +242,8 @@ export default function WorkDays() {
          // Clear current data before loading new year data
      setWorkDaysData({
        rows: [
-         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' },
-         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '' }
+         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' },
+         { id: `workday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, text: '', cost: '', date: '' }
        ]
      })
     // Load data for the new year
@@ -367,7 +388,7 @@ export default function WorkDays() {
        </div>
 
        {/* Table */}
-               <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-4xl mx-auto">
+               <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-5xl mx-auto">
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
             <thead>
@@ -375,8 +396,11 @@ export default function WorkDays() {
                 <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black w-[200px]">
                   מלל חופשי
                 </th>
-                <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black border-r-4 border-r-black w-[100px]">
+                <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black border-r-2 border-r-black w-[100px]">
                   <span className="whitespace-nowrap">עלות יום עבודה</span>
+                </th>
+                <th className="px-6 py-3 text-right font-bold text-black border-b-2 border-black border-r-4 border-r-black w-[120px]">
+                  תאריך
                 </th>
                 <th className="px-4 py-3 w-16 border-b-2 border-black"></th>
               </tr>
@@ -398,7 +422,7 @@ export default function WorkDays() {
                       }}
                     />
                   </td>
-                  <td className="border-b-2 border-r-4 border-black border-r-black p-2 w-[100px]">
+                  <td className="border-b-2 border-r-2 border-black p-2 w-[100px]">
                     <input
                       type="text"
                       value={row.cost}
@@ -406,6 +430,14 @@ export default function WorkDays() {
                       className="w-full text-right border-none outline-none bg-transparent text-black placeholder-black"
                       placeholder="0"
                       inputMode="decimal"
+                    />
+                  </td>
+                  <td className="border-b-2 border-r-4 border-black p-2 w-[120px]">
+                    <input
+                      type="date"
+                      value={row.date}
+                      onChange={(e) => handleDateChange(index, e.target.value)}
+                      className="w-full text-center border-none outline-none bg-transparent text-black"
                     />
                   </td>
                   <td className="px-4 py-2 text-center border-b-2 border-black w-16">
@@ -424,12 +456,13 @@ export default function WorkDays() {
               
               {/* Total Row */}
               <tr className="bg-white/90 border-2 border-black font-bold">
-                <td className="px-6 py-3 text-right text-black border-t-2 border-black border-r-4 border-r-black w-[200px]">
+                <td className="px-6 py-3 text-right text-black border-t-2 border-black border-r-2 border-r-black w-[200px]">
                   סה״כ
                 </td>
-                <td className="px-6 py-3 text-right text-black border-t-2 border-black border-r-4 border-r-black w-[100px]">
+                <td className="px-6 py-3 text-right text-black border-t-2 border-black border-r-2 border-r-black w-[100px]">
                   ₪{totalCost.toFixed(2)}
                 </td>
+                <td className="px-6 py-3 border-t-2 border-r-4 border-black w-[120px]"></td>
                 <td className="px-4 py-3 border-t-2 border-black w-16"></td>
               </tr>
             </tbody>

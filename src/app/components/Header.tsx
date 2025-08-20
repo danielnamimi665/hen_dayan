@@ -40,12 +40,8 @@ export default function Header({ onLogout }: HeaderProps) {
       <header className="bg-white shadow-lg border-b-2 border-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4 space-x-reverse">
-              <img src="/henlogo.png" alt="Hen Dayan Logo" className="h-12 w-auto" />
-              <div className="text-right">
-                <h1 className="text-lg font-bold text-gray-900">פזית נמימי - חשבת שכר</h1>
-                <p className="text-sm text-gray-600">חן דיין עבודות עפר ופיתוח</p>
-              </div>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-white bg-black px-4 py-2 rounded-lg">חן דיין</h1>
             </div>
             
             <div className="flex items-center space-x-4 space-x-reverse">
