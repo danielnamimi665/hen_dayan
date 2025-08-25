@@ -421,7 +421,7 @@ export default function WorkDays() {
                       }}
                     />
                   </td>
-                  <td className="border-b-2 border-r-2 border-l-2 border-black p-1 sm:p-2 w-[25%] sm:w-[150px]">
+                  <td className="border-b-2 border-r-2 border-black p-1 sm:p-2 w-[25%] sm:w-[150px]">
                     <input
                       type="text"
                       value={row.cost}
@@ -432,18 +432,18 @@ export default function WorkDays() {
                     />
                   </td>
                   <td className="border-b-2 border-r-2 border-black p-1 sm:p-2 w-[28%] sm:w-[170px]">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <input
                         type="date"
                         value={row.date}
                         onChange={(e) => handleDateChange(index, e.target.value)}
-                        className="flex-1 text-right border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
+                        className="flex-1 min-w-0 text-right border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
                         style={{ textAlign: 'right' }}
                       />
                       {workDaysData.rows.length > 2 && (
                         <button
                           onClick={() => removeRow(row.id)}
-                          className="text-red-500 hover:text-red-700 text-base sm:text-lg font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full hover:bg-red-100 transition-colors ml-2"
+                          className="text-red-500 hover:text-red-700 text-base sm:text-lg font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full hover:bg-red-100 transition-colors flex-shrink-0"
                           title="מחק שורה"
                         >
                           ×
