@@ -437,6 +437,7 @@ export default function WorkDays() {
                       value={row.date}
                       onChange={(e) => handleDateChange(index, e.target.value)}
                       className="w-full text-right border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
+                      style={{ textAlign: 'right' }}
                     />
                   </td>
                   <td className="px-1 sm:px-2 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
