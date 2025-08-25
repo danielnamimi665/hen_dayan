@@ -432,24 +432,26 @@ export default function WorkDays() {
                     />
                   </td>
                   <td className="border-b-2 border-r-2 border-black p-1 sm:p-2 w-[28%] sm:w-[170px]">
-                    <input
-                      type="date"
-                      value={row.date}
-                      onChange={(e) => handleDateChange(index, e.target.value)}
-                      className="w-full text-right border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
-                      style={{ textAlign: 'right' }}
-                    />
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="date"
+                        value={row.date}
+                        onChange={(e) => handleDateChange(index, e.target.value)}
+                        className="flex-1 text-right border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
+                        style={{ textAlign: 'right' }}
+                      />
+                      {workDaysData.rows.length > 2 && (
+                        <button
+                          onClick={() => removeRow(row.id)}
+                          className="text-red-500 hover:text-red-700 text-base sm:text-lg font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full hover:bg-red-100 transition-colors ml-2"
+                          title="מחק שורה"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="px-2 sm:px-4 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
-                    {workDaysData.rows.length > 2 && (
-                      <button
-                        onClick={() => removeRow(row.id)}
-                        className="text-red-500 hover:text-red-700 text-base sm:text-lg font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full hover:bg-red-100 transition-colors"
-                        title="מחק שורה"
-                      >
-                        ×
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}
