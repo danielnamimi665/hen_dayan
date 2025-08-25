@@ -387,7 +387,7 @@ export default function WorkDays() {
 
        {/* Table */}
        <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black w-full mx-2 sm:mx-4">
-        <div className="overflow-x-auto">
+        <div className="overflow-hidden">
           <table className="w-full table-fixed">
             <thead>
               <tr className="bg-white/90 border-2 border-black">
@@ -436,7 +436,7 @@ export default function WorkDays() {
                       type="date"
                       value={row.date}
                       onChange={(e) => handleDateChange(index, e.target.value)}
-                      className="w-full text-center border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
+                      className="w-full text-right border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
                     />
                   </td>
                   <td className="px-1 sm:px-2 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
@@ -461,7 +461,7 @@ export default function WorkDays() {
                 <td className="px-2 sm:px-4 py-3 text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
                   <div className="flex items-center justify-center h-full">
                     <span className="text-center whitespace-nowrap text-[16px] sm:text-sm">
-                      ₪{totalCost.toFixed(2)}
+                      ₪{totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                 </td>
