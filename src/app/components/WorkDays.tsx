@@ -386,31 +386,31 @@ export default function WorkDays() {
        </div>
 
        {/* Table */}
-       <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black max-w-5xl mx-auto">
+       <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black w-full mx-2 sm:mx-4">
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
             <thead>
               <tr className="bg-white/90 border-2 border-black">
-                <th className="px-4 py-3 text-right font-bold text-black border-b-2 border-black w-[300px]">
+                <th className="px-2 sm:px-4 py-3 text-right font-bold text-black border-b-2 border-black w-[45%] sm:w-[300px]">
                   פירוט
                 </th>
-                <th className="px-4 py-3 text-center font-bold text-black border-b-2 border-black border-r-2 border-l-2 border-black w-[150px]">
+                <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
                   עלות
                 </th>
-                <th className="px-4 py-3 text-center font-bold text-black border-b-2 border-black w-[150px]">
+                <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black w-[25%] sm:w-[150px]">
                   תאריך
                 </th>
-                <th className="px-4 py-3 w-16 border-b-2 border-black"></th>
+                <th className="px-1 sm:px-4 py-3 w-[5%] sm:w-16 border-b-2 border-black"></th>
               </tr>
             </thead>
             <tbody>
               {workDaysData.rows.map((row, index) => (
                 <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
-                  <td className="border-l-2 border-b-2 border-black p-2 w-[300px]">
+                  <td className="border-l-2 border-b-2 border-black p-1 sm:p-2 w-[45%] sm:w-[300px]">
                     <textarea
                       value={row.text}
                       onChange={(e) => handleTextChange(index, e.target.value)}
-                      className="w-full resize-none border-none outline-none bg-transparent text-black font-bold text-sm placeholder-black min-h-[40px] max-h-[120px] overflow-y-auto"
+                      className="w-full resize-none border-none outline-none bg-transparent text-black font-bold text-xs sm:text-sm placeholder-black min-h-[40px] max-h-[120px] overflow-y-auto"
                       placeholder=""
                       rows={1}
                       onInput={(e) => {
@@ -421,29 +421,29 @@ export default function WorkDays() {
                       }}
                     />
                   </td>
-                  <td className="border-b-2 border-r-2 border-l-2 border-black p-2 w-[150px]">
+                  <td className="border-b-2 border-r-2 border-l-2 border-black p-1 sm:p-2 w-[25%] sm:w-[150px]">
                     <input
                       type="text"
                       value={row.cost}
                       onChange={(e) => handleNumberChange(index, e.target.value)}
-                      className="w-full text-center border-none outline-none bg-transparent text-black placeholder-black text-sm"
+                      className="w-full text-center border-none outline-none bg-transparent text-black placeholder-black text-xs sm:text-sm"
                       placeholder="0"
                       inputMode="decimal"
                     />
                   </td>
-                  <td className="border-b-2 border-r-2 border-black p-2 w-[150px]">
+                  <td className="border-b-2 border-r-2 border-black p-1 sm:p-2 w-[25%] sm:w-[150px]">
                     <input
                       type="date"
                       value={row.date}
                       onChange={(e) => handleDateChange(index, e.target.value)}
-                      className="w-full text-center border-none outline-none bg-transparent text-black text-sm"
+                      className="w-full text-center border-none outline-none bg-transparent text-black text-xs sm:text-sm"
                     />
                   </td>
-                  <td className="px-2 py-2 text-center border-b-2 border-black w-16">
+                  <td className="px-1 sm:px-2 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
                     {workDaysData.rows.length > 2 && (
                       <button
                         onClick={() => removeRow(row.id)}
-                        className="text-red-500 hover:text-red-700 text-lg font-bold w-6 h-6 rounded-full hover:bg-red-100 transition-colors"
+                        className="text-red-500 hover:text-red-700 text-base sm:text-lg font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full hover:bg-red-100 transition-colors"
                         title="מחק שורה"
                       >
                         ×
@@ -455,14 +455,14 @@ export default function WorkDays() {
               
               {/* Total Row */}
               <tr className="bg-white/90 border-2 border-black font-bold">
-                <td className="px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[300px]">
+                <td className="px-2 sm:px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[45%] sm:w-[300px]">
                   סה״כ
                 </td>
-                <td className="px-4 py-3 text-center text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[150px] flex items-center justify-center">
+                <td className="px-2 sm:px-4 py-3 text-center text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px] flex items-center justify-center">
                   ₪{totalCost.toFixed(2)}
                 </td>
-                <td className="px-4 py-3 border-t-2 border-r-2 border-black w-[150px]"></td>
-                <td className="px-2 py-3 border-t-2 border-black w-16"></td>
+                <td className="px-2 sm:px-4 border-t-2 border-r-2 border-black w-[25%] sm:w-[150px]"></td>
+                <td className="px-1 sm:px-2 py-3 border-t-2 border-black w-[5%] sm:w-16"></td>
               </tr>
             </tbody>
           </table>
