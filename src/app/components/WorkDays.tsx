@@ -386,7 +386,7 @@ export default function WorkDays() {
        </div>
 
        {/* Table */}
-       <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black w-full mx-2 sm:mx-4">
+       <div className="bg-white/90 rounded-lg shadow-lg overflow-hidden border-2 border-black w-full mx-1 sm:mx-2">
         <div className="overflow-hidden">
           <table className="w-full table-fixed">
             <thead>
@@ -461,7 +461,7 @@ export default function WorkDays() {
                 <td className="px-2 sm:px-4 py-3 text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
                   <div className="flex items-center justify-center h-full">
                     <span className="text-center whitespace-nowrap text-[16px] sm:text-sm">
-                      ₪{totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ₪{Math.round(totalCost).toLocaleString('en-US')}
                     </span>
                   </div>
                 </td>
