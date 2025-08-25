@@ -440,7 +440,7 @@ export default function WorkDays() {
                       style={{ textAlign: 'right' }}
                     />
                   </td>
-                  <td className="px-1 sm:px-2 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
+                  <td className="px-2 sm:px-4 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
                     {workDaysData.rows.length > 2 && (
                       <button
                         onClick={() => removeRow(row.id)}
@@ -467,7 +467,7 @@ export default function WorkDays() {
                   </div>
                 </td>
                 <td className="px-2 sm:px-4 border-t-2 border-r-2 border-black w-[28%] sm:w-[170px]"></td>
-                <td className="px-1 sm:px-2 py-3 border-t-2 border-black w-[5%] sm:w-16"></td>
+                <td className="px-2 sm:px-4 py-3 border-t-2 border-black w-[5%] sm:w-16"></td>
               </tr>
             </tbody>
           </table>
