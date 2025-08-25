@@ -458,8 +458,12 @@ export default function WorkDays() {
                 <td className="px-2 sm:px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[45%] sm:w-[300px]">
                   סה״כ
                 </td>
-                <td className="px-2 sm:px-4 py-3 text-center text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px] flex items-center justify-center">
-                  ₪{totalCost.toFixed(2)}
+                <td className="px-2 sm:px-4 py-3 text-center text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-center truncate max-w-full">
+                      ₪{totalCost.toFixed(2)}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-2 sm:px-4 border-t-2 border-r-2 border-black w-[25%] sm:w-[150px]"></td>
                 <td className="px-1 sm:px-2 py-3 border-t-2 border-black w-[5%] sm:w-16"></td>
