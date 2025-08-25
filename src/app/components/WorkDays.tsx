@@ -391,13 +391,13 @@ export default function WorkDays() {
           <table className="w-full table-fixed">
             <thead>
               <tr className="bg-white/90 border-2 border-black">
-                <th className="px-2 sm:px-4 py-3 text-right font-bold text-black border-b-2 border-black w-[45%] sm:w-[300px]">
+                <th className="px-2 sm:px-4 py-3 text-right font-bold text-black border-b-2 border-black w-[42%] sm:w-[280px]">
                   פירוט
                 </th>
                 <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
                   עלות
                 </th>
-                <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black w-[25%] sm:w-[150px]">
+                <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black w-[28%] sm:w-[170px]">
                   תאריך
                 </th>
                 <th className="px-1 sm:px-4 py-3 w-[5%] sm:w-16 border-b-2 border-black"></th>
@@ -406,7 +406,7 @@ export default function WorkDays() {
             <tbody>
               {workDaysData.rows.map((row, index) => (
                 <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
-                  <td className="border-l-2 border-b-2 border-black p-1 sm:p-2 w-[45%] sm:w-[300px]">
+                  <td className="border-l-2 border-b-2 border-black p-1 sm:p-2 w-[42%] sm:w-[280px]">
                     <textarea
                       value={row.text}
                       onChange={(e) => handleTextChange(index, e.target.value)}
@@ -431,7 +431,7 @@ export default function WorkDays() {
                       inputMode="decimal"
                     />
                   </td>
-                  <td className="border-b-2 border-r-2 border-black p-1 sm:p-2 w-[25%] sm:w-[150px]">
+                  <td className="border-b-2 border-r-2 border-black p-1 sm:p-2 w-[28%] sm:w-[170px]">
                     <input
                       type="date"
                       value={row.date}
@@ -455,7 +455,7 @@ export default function WorkDays() {
               
               {/* Total Row */}
               <tr className="bg-white/90 border-2 border-black font-bold">
-                <td className="px-2 sm:px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[45%] sm:w-[300px]">
+                <td className="px-2 sm:px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[42%] sm:w-[280px]">
                   סה״כ
                 </td>
                 <td className="px-2 sm:px-4 py-3 text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
@@ -465,7 +465,7 @@ export default function WorkDays() {
                     </span>
                   </div>
                 </td>
-                <td className="px-2 sm:px-4 border-t-2 border-r-2 border-black w-[25%] sm:w-[150px]"></td>
+                <td className="px-2 sm:px-4 border-t-2 border-r-2 border-black w-[28%] sm:w-[170px]"></td>
                 <td className="px-1 sm:px-2 py-3 border-t-2 border-black w-[5%] sm:w-16"></td>
               </tr>
             </tbody>
