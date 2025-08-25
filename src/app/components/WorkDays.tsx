@@ -391,10 +391,10 @@ export default function WorkDays() {
           <table className="w-full table-fixed">
             <thead>
               <tr className="bg-white/90 border-2 border-black">
-                <th className="px-2 sm:px-4 py-3 text-right font-bold text-black border-b-2 border-black w-[45%] sm:w-[300px]">
+                <th className="px-2 sm:px-4 py-3 text-right font-bold text-black border-b-2 border-black w-[42%] sm:w-[280px]">
                   פירוט
                 </th>
-                <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
+                <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black border-r-2 border-l-2 border-black w-[28%] sm:w-[170px]">
                   עלות
                 </th>
                 <th className="px-2 sm:px-4 py-3 text-center font-bold text-black border-b-2 border-black w-[25%] sm:w-[150px]">
@@ -406,11 +406,11 @@ export default function WorkDays() {
             <tbody>
               {workDaysData.rows.map((row, index) => (
                 <tr key={row.id} className="bg-white/90 border-b-2 border-black hover:bg-gray-50">
-                  <td className="border-l-2 border-b-2 border-black p-1 sm:p-2 w-[45%] sm:w-[300px]">
+                  <td className="border-l-2 border-b-2 border-black p-1 sm:p-2 w-[42%] sm:w-[280px]">
                     <textarea
                       value={row.text}
                       onChange={(e) => handleTextChange(index, e.target.value)}
-                      className="w-full resize-none border-none outline-none bg-transparent text-black font-bold text-xs sm:text-sm placeholder-black min-h-[40px] max-h-[120px] overflow-y-auto"
+                      className="w-full resize-none border-none outline-none bg-transparent text-black font-bold text-[16px] sm:text-sm placeholder-black min-h-[40px] max-h-[120px] overflow-y-auto"
                       placeholder=""
                       rows={1}
                       onInput={(e) => {
@@ -421,12 +421,12 @@ export default function WorkDays() {
                       }}
                     />
                   </td>
-                  <td className="border-b-2 border-r-2 border-l-2 border-black p-1 sm:p-2 w-[25%] sm:w-[150px]">
+                  <td className="border-b-2 border-r-2 border-l-2 border-black p-1 sm:p-2 w-[28%] sm:w-[170px]">
                     <input
                       type="text"
                       value={row.cost}
                       onChange={(e) => handleNumberChange(index, e.target.value)}
-                      className="w-full text-center border-none outline-none bg-transparent text-black placeholder-black text-xs sm:text-sm"
+                      className="w-full text-center border-none outline-none bg-transparent text-black placeholder-black text-[16px] sm:text-sm"
                       placeholder="0"
                       inputMode="decimal"
                     />
@@ -436,7 +436,7 @@ export default function WorkDays() {
                       type="date"
                       value={row.date}
                       onChange={(e) => handleDateChange(index, e.target.value)}
-                      className="w-full text-center border-none outline-none bg-transparent text-black text-xs sm:text-sm"
+                      className="w-full text-center border-none outline-none bg-transparent text-black text-[16px] sm:text-sm"
                     />
                   </td>
                   <td className="px-1 sm:px-2 py-2 text-center border-b-2 border-black w-[5%] sm:w-16">
@@ -455,12 +455,12 @@ export default function WorkDays() {
               
               {/* Total Row */}
               <tr className="bg-white/90 border-2 border-black font-bold">
-                <td className="px-2 sm:px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[45%] sm:w-[300px]">
+                <td className="px-2 sm:px-4 py-3 text-right text-black border-t-2 border-black border-r-2 border-black w-[42%] sm:w-[280px]">
                   סה״כ
                 </td>
-                <td className="px-2 sm:px-4 py-3 text-center text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[25%] sm:w-[150px]">
+                <td className="px-2 sm:px-4 py-3 text-black border-t-2 border-black border-r-2 border-l-2 border-black w-[28%] sm:w-[170px]">
                   <div className="flex items-center justify-center h-full">
-                    <span className="text-center truncate max-w-full">
+                    <span className="text-center whitespace-nowrap text-[16px] sm:text-sm">
                       ₪{totalCost.toFixed(2)}
                     </span>
                   </div>
